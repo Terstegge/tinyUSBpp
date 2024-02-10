@@ -13,9 +13,9 @@
 //
 #include "usb_dcd_rp2040.h"
 #include "usb_endpoint_rp2040.h"
+#include "usb_log.h"
 #include "RP2040.h"
 #include <cassert>
-#include <cstdio>
 
 using namespace _USBCTRL_REGS_;
 using namespace USB;
@@ -85,10 +85,10 @@ void usb_endpoint_rp2040::_process_buffer() {
 }
 
 void usb_endpoint_rp2040::enable_endpoint(bool b) {
-    printf("EP %2x enabled: %d\n", descriptor.bEndpointAddress, b);
-     if (_endp_ctrl) {
-         _endp_ctrl->ENABLE = b;
-     }
+    TUPP_LOG(LOG_INFO, "Endpoint 0x%x enabled: %b", descriptor.bEndpointAddress, b);
+    if (_endp_ctrl) {
+        _endp_ctrl->ENABLE = b;
+    }
 }
 
 void usb_endpoint_rp2040::send_NAK(bool b) {

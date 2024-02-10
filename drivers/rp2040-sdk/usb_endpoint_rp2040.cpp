@@ -13,8 +13,8 @@
 //
 #include "usb_dcd_rp2040.h"
 #include "usb_endpoint_rp2040.h"
+#include "usb_log.h"
 #include <cassert>
-#include <cstdio>
 
 #include "hardware/structs/usb.h"
 
@@ -87,7 +87,7 @@ void usb_endpoint_rp2040::_process_buffer() {
 }
 
 void usb_endpoint_rp2040::enable_endpoint(bool b) {
-    printf("EP %2x enabled: %d\n", descriptor.bEndpointAddress, b);
+    TUPP_LOG(LOG_INFO, "Endpoint 0x%x enabled: %b", descriptor.bEndpointAddress, b);
     if (b) {
         *_endp_ctrl |=  EP_CTRL_ENABLE_BITS;
     } else {
