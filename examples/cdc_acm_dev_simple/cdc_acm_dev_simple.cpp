@@ -1,8 +1,21 @@
+//    _   _             _    _  _____ ____
+//   | | (_)           | |  | |/ ____|  _ \   _     _
+//   | |_ _ _ __  _   _| |  | | (___ | |_) |_| |_ _| |_
+//   | __| | '_ \| | | | |  | |\___ \|  _ < _   _|_   _|
+//   | |_| | | | | |_| | |__| |____) | |_) | |_|   |_|
+//    \__|_|_| |_|\__, |\____/|_____/|____/
+//                __/ |
+//               |___/
 //
-// Simple CDC ACM example. The device will
-// simply echo every character.
+// This file is part of tinyUSB++, C++ based and easy to
+// use library for USB host/device functionality.
+// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-
+//
+// Simple CDC ACM example. The serial device will
+// simply echo every character. This can e.g. be
+// used for data throughput measurements.
+//
 #include <cctype>
 #include "pico/stdlib.h"
 
