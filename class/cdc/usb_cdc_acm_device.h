@@ -20,7 +20,7 @@
 #ifndef TUPP_USB_CDC_ACM_DEVICE_H
 #define TUPP_USB_CDC_ACM_DEVICE_H
 
-#include "usb_cdc_common.h"
+#include "usb_cdc_structs.h"
 #include "usb_configuration.h"
 #include "usb_device_controller.h"
 

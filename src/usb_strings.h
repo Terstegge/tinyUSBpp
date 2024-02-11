@@ -24,7 +24,7 @@
 
 class usb_strings {
 public:
-    // This class is a simple singleton
+    // This class is a  singleton
     static usb_strings inst;
 
     // No copy, no assignment
@@ -33,29 +33,31 @@ public:
 
     // Add a new string entry and return the index where the
     // pointer was stored. Index 0 is the language id (see
-    // CTOR). The pointer has to point to a non-changing
+    // CTOR). The pointer has to point to a constant
     // C-string in memory, e.g. a (static) string literal.
     uint8_t add_string(const char * str);
 
-    // Set up a USB buffer so that it conforms to a USB
-    // string descriptor. The string to process is selected
-    // by the index parameter. buffer has to point to an
-    // allocated buffer, which has to have a minimum size
-    // of strlen(string)+2. Two bytes are needed for
-    // the descriptor length and type. One byte is needed
-    // for every character (the generated string is UTF8).
+    // Set up a USB buffer so that it conforms to a UTF8
+    // compatible USB string descriptor. This kind of descriptor
+    // is only used in some Microsoft descriptors, the USB standard
+    // uses UTF16 (see next method). The string to process is
+    // selected by the index parameter. buffer has to point to
+    // a pre-allocated buffer, which has to have a minimum size
+    // of strlen(string)+2. Two bytes are needed for the descriptor
+    // length and type. One byte is needed for every character
+    // (the generated string is UTF8).
     // Returns the total length of the constructed descriptor.
-    uint8_t prepare_desc_utf8(uint8_t index, uint8_t * buffer);
+    uint8_t prepare_string_desc_utf8(uint8_t index, uint8_t * buffer);
 
-    // Set up a USB buffer so that it conforms to a USB
-    // string descriptor. The string to process is selected
-    // by the index parameter. buffer has to point to an
-    // allocated buffer, which has to have a minimum size
-    // of strlen(string)*2+2. Two bytes are needed for
-    // the descriptor length and type. Two bytes are needed
-    // for every character (the generated string is UTF16).
+    // Set up a USB buffer so that it conforms to a USB standard
+    // string descriptor. The string to process is selected by
+    // the index parameter. buffer has to point to an allocated
+    // buffer, which has to have a minimum size of strlen(string)*2+2.
+    // Two bytes are needed for the descriptor length and type.
+    // Two bytes are needed for every character (the generated
+    // string is UTF16).
     // Returns the total length of the constructed descriptor.
-    uint8_t prepare_desc_utf16(uint8_t index, uint8_t * buffer);
+    uint8_t prepare_string_desc_utf16(uint8_t index, uint8_t * buffer);
 
     // Convert a given C-string into a UTF16 string including a
     // (double) NULL-termination character. The generated string

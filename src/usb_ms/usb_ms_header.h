@@ -19,7 +19,7 @@
 class usb_bos_dev_cap_platform_ms;
 class usb_ms_config_subset;
 
-#include "usb_ms_common.h"
+#include "usb_ms_structs.h"
 #include "usb_config.h"
 #include <array>
 

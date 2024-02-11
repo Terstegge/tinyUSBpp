@@ -11,7 +11,7 @@
 // use library for USB host/device functionality.
 // (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#include "usb_ms_webusb_descriptor.h"
+#include "usb_ms_compat_descriptor.h"
 #include "usb_log.h"
 #include <cstring>
 
@@ -21,24 +21,25 @@
 #define URL_HTTPS       "\x01"
 #define URL_FULL        "\xff"
 
-usb_ms_webusb_descriptor::usb_ms_webusb_descriptor(usb_device_controller & ctrl,
+usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
                                                    usb_device & dev)
 : _controller(ctrl), _device(dev), _bos(_device)
 {
-    // {3408b638-09a9-47a0-8bfd-a0768815b665}
+
+// {3408b638-09a9-47a0-8bfd-a0768815b665}
 //    uint8_t uuid1[16] = { 0x38, 0xB6, 0x08, 0x34, 0xA9, 0x09, 0xA0, 0x47,
 //                          0x8B, 0xFD, 0xA0, 0x76, 0x88, 0x15, 0xB6, 0x65 };
+//
+//    _web_platform.set_PlatformCapabilityUUID ( uuid1 );
+//    _web_platform.set_bcdVersion             ( 0x0100 );
+//    _web_platform.set_bVendorCode            ( GET_WEBUSB_URL );
+//    _web_platform.set_iLandingPage           ( URL_FULL "http://www.fh-aachen.de");
 
     // {d8dd60df-4589-4cc7-9cd2-659d9e648a9f}
     uint8_t uuid2[16] = { 0xDF, 0x60, 0xDD, 0xD8, 0x89, 0x45, 0xC7, 0x4C,
                           0x9C, 0xD2, 0x65, 0x9D, 0x9E, 0x64, 0x8A, 0x9F };
 
     uint32_t win_version = 0x06030000;
-
-//    _web_platform.set_PlatformCapabilityUUID ( uuid1 );
-//    _web_platform.set_bcdVersion             ( 0x0100 );
-//    _web_platform.set_bVendorCode            ( GET_WEBUSB_URL );
-//    _web_platform.set_iLandingPage           ( URL_FULL "http://www.fh-aachen.de");
 
     _cap_platform.set_PlatformCapabilityUUID ( uuid2 );
     _cap_platform.set_dwWindowsVersion       ( win_version );
@@ -58,7 +59,7 @@ usb_ms_webusb_descriptor::usb_ms_webusb_descriptor(usb_device_controller & ctrl,
         if ( (pkt->bRequest == GET_WEBUSB_URL) &&
              (pkt->wValue   == 1) && (pkt->wIndex == 2) ) {
             TUPP_LOG(LOG_INFO, "Getting MS WebUSB URL");
-            uint8_t len = usb_strings::inst.prepare_desc_utf8(pkt->wValue, _buffer);
+            uint8_t len = usb_strings::inst.prepare_string_desc_utf8(pkt->wValue, _buffer);
             if (len > pkt->wLength) len = pkt->wLength;
             _controller._ep0_in->start_transfer(_buffer, len);
         } else if ( (pkt->bRequest == GET_WEBUSB_DESC) &&
@@ -84,7 +85,7 @@ usb_ms_webusb_descriptor::usb_ms_webusb_descriptor(usb_device_controller & ctrl,
 
 }
 
-uint16_t usb_ms_webusb_descriptor::prepare_descriptor() {
+uint16_t usb_ms_compat_descriptor::prepare_descriptor() {
     auto * tmp_ptr  = _buffer;
     auto * ptr1     = &_ms_header.descriptor;
     auto   len1     =  _ms_header.descriptor.wLength;

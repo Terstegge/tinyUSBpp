@@ -21,7 +21,7 @@ using namespace USB;
 usb_interface_association::usb_interface_association(usb_configuration & p)
     : descriptor(_descriptor), _parent(p), _descriptor{}
 {
-    TUPP_LOG(LOG_DEBUG, "usb_interface_association()");
+    TUPP_LOG(LOG_DEBUG, "usb_interface_association() @%x", this);
     // Set descriptor length
     _descriptor.bLength = sizeof(interface_association_descriptor_t);
     // Set descriptor type
@@ -36,7 +36,8 @@ void usb_interface_association::set_FunctionName(const char * n) {
 }
 
 void usb_interface_association::add_interface(usb_interface * interface) {
-    TUPP_LOG(LOG_DEBUG, "add_interface()");
+    TUPP_LOG(LOG_DEBUG, "add_interface(%d)",
+             interface->descriptor.bInterfaceNumber);
     uint8_t index = _parent.add_interface(interface);
     if (!descriptor.bInterfaceCount) {
         // First interface for this association, so store

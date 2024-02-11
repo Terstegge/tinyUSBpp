@@ -53,7 +53,8 @@ void usb_interface::set_InterfaceName(const char * s) {
 }
 
 void usb_interface::add_endpoint(usb_endpoint * ep) {
-    TUPP_LOG(LOG_DEBUG, "add_endpoint(0x%x)", ep->descriptor.bEndpointAddress);
+    TUPP_LOG(LOG_DEBUG, "add_endpoint(0x%x)",
+             ep->descriptor.bEndpointAddress);
     int i=0;
     for (i=0; i < TUPP_MAX_EP_PER_INTERFACE; ++i) {
         if (!_endpoints[i]) {
@@ -72,8 +73,10 @@ void usb_interface::add_func_descriptor(usb_fd_base * desc) {
         // First entry
         _fd_ptr = desc;
     } else {
+        // Find last functional descriptor
         usb_fd_base *ptr = _fd_ptr;
         while (ptr->next) ptr = ptr->next;
+        // and link in this descriptor
         ptr->next = desc;
     }
     _parent.set_total_length();

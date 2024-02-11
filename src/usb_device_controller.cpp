@@ -11,9 +11,15 @@
 // use library for USB host/device functionality.
 // (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+// This class is the central USB device controller. Its main
+// job is to set up EP0, and listen to USB request. The standard
+// requests are handled within this class, the device/interface/
+// endpoint-specific requests will be forwarded to the correct
+// destination.
+
 #include "usb_device_controller.h"
 
-#include "usb_common.h"
+#include "usb_structs.h"
 #include "usb_device.h"
 #include "usb_configuration.h"
 #include "usb_interface.h"
@@ -81,14 +87,9 @@ usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_dev
     // Handler for setup requests
     _driver.setup_handler = [&](USB::setup_packet_t *pkt) {
         TUPP_LOG(LOG_DEBUG, "setup_handler()");
-        // Reset PID to 1 for EP0
-        _ep0_in->send_stall(false);
-        _ep0_out->send_stall(false);
-        _ep0_in->next_pid  = 1;
-        _ep0_out->next_pid = 1;
-        _ep0_in->_active = false;
-        _ep0_out->_active = false;
-
+        // Reset EP0
+        _ep0_in->reset();
+        _ep0_out->reset();
         // Process standard requests
         if (pkt->type == type_t::TYPE_STANDARD) {
             switch (pkt->bRequest) {
@@ -145,7 +146,7 @@ usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_dev
                 case REC_INTERFACE: {
                     auto config = _device.find_configuration(_active_configuration);
                     if (config) {
-                        auto interface = config->_interfaces[pkt->wIndex];
+                        auto interface = config->interfaces[pkt->wIndex];
                         if (interface) {
                             if (interface->setup_handler) {
                                 interface->setup_handler(pkt);
@@ -192,14 +193,16 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
     uint8_t * tmp_ptr = _buf;
     switch (desc_type) {
         case DESC_DEVICE: {
-            TUPP_LOG(LOG_INFO, "Get device descriptor");
+            TUPP_LOG(LOG_INFO, "Get device descriptor (len=%d)",
+                     pkt->wLength);
             assert(_device.descriptor.bLength <= pkt->wLength);
             _ep0_in->start_transfer((uint8_t *) &_device.descriptor, _device.descriptor.bLength);
             break;
         }
         case DESC_CONFIGURATION: {
-            TUPP_LOG(LOG_INFO, "Get configuration descriptor %d", desc_index);
-            auto conf = _device._configurations[desc_index];
+            TUPP_LOG(LOG_INFO, "Get configuration descriptor %d (len=%d)",
+                     desc_index, pkt->wLength);
+            auto conf = _device.configurations[desc_index];
             if (conf) {
                 assert(pkt->wLength >= sizeof(configuration_descriptor_t));
                 // Copy configuration descriptor first
@@ -208,7 +211,7 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
                 // Check if we need the big stuff
                 if (pkt->wLength >= conf->descriptor.wTotalLength) {
                     // Copy interface and endpoint descriptors
-                    for (auto interface : conf->_interfaces) {
+                    for (auto interface : conf->interfaces) {
                         if (interface) {
                             // Process interface association
                             if (interface->_assoc_ptr) {
@@ -245,58 +248,61 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
             break;
         }
         case DESC_STRING: {
-            TUPP_LOG(LOG_INFO, "Get string descriptor [%d]", pkt->wValue & 0xff);
+            TUPP_LOG(LOG_INFO, "Get string descriptor [%d] (len=%d)",
+                     pkt->wValue & 0xff, pkt->wLength);
             uint8_t index = pkt->wValue & 0xff;
-            uint8_t len = usb_strings::inst.prepare_desc_utf16(index, _buf);
+            uint8_t len = usb_strings::inst.prepare_string_desc_utf16(index, _buf);
             if (len > pkt->wLength) len = pkt->wLength;
             assert(len <= pkt->wLength);
             _ep0_in->start_transfer(_buf, len);
             break;
         }
         case DESC_OTG: {
-            TUPP_LOG(LOG_INFO, "Get OTG descriptor");
+            TUPP_LOG(LOG_INFO, "Get OTG descriptor (len=%d)", pkt->wLength);
             _ep0_in->send_stall(true);
             _ep0_out->send_stall(true);
             break;
         }
         case DESC_DEBUG: {
-            TUPP_LOG(LOG_INFO, "Get Debug descriptor");
+            TUPP_LOG(LOG_INFO, "Get Debug descriptor (len=%d)", pkt->wLength);
             _ep0_in->send_stall(true);
             _ep0_out->send_stall(true);
             break;
         }
         case DESC_BOS: {
-            TUPP_LOG(LOG_INFO, "Get BOS descriptor");
-            if (_device._bos) {
+            TUPP_LOG(LOG_INFO, "Get BOS descriptor (len=%d)", pkt->wLength);
+            if (_device.bos) {
                 // We have a BOS descriptor
                 tmp_ptr = _buf;
                 assert(sizeof(USB::bos_descriptor_t) <= TUPP_MAX_DESC_SIZE);
-                memcpy(tmp_ptr, &_device._bos->descriptor, sizeof(USB::bos_descriptor_t));
+                memcpy(tmp_ptr, &_device.bos->descriptor, sizeof(USB::bos_descriptor_t));
                 tmp_ptr += sizeof(USB::bos_descriptor_t);
-                for (int i=0; i < _device._bos->descriptor.bNumDeviceCaps; ++i) {
-                    uint16_t cap_len = _device._bos->_capabilities[i]->get_bLength();
+                for (int i=0; i < _device.bos->descriptor.bNumDeviceCaps; ++i) {
+                    uint16_t cap_len = _device.bos->_capabilities[i]->get_bLength();
                     assert((tmp_ptr - _buf + cap_len) <= TUPP_MAX_DESC_SIZE);
-                    memcpy(tmp_ptr, _device._bos->_capabilities[i]->get_desc_ptr(), cap_len);
+                    memcpy(tmp_ptr, _device.bos->_capabilities[i]->get_desc_ptr(), cap_len);
                     tmp_ptr += cap_len;
                 }
                 uint16_t len = tmp_ptr - _buf;
                 if (pkt->wLength < len) len = pkt->wLength;
                 _ep0_in->start_transfer(_buf, len);
             } else {
-                _ep0_in->send_stall(true);
-                _ep0_out->send_stall(true);
+                // No BOS, so stall the EP0
+//                _ep0_in->send_stall(true);
+//                _ep0_out->send_stall(true);
             }
             break;
         }
         case DESC_DEVICE_QUALIFIER: {
-            TUPP_LOG(LOG_INFO, "Get device qualifier descriptor");
+            TUPP_LOG(LOG_INFO, "Get device qualifier descriptor (len=%d)",
+                     pkt->wLength);
             _ep0_in->send_stall(true);
             _ep0_out->send_stall(true);
             break;
         }
         default:
             TUPP_LOG(LOG_WARNING, "Unknown descriptor type %d", desc_type);
-            // Status stage
+            // Don't know what to report, so stall EP0
             _ep0_in->send_stall(true);
             _ep0_out->send_stall(true);
     }
@@ -306,10 +312,9 @@ void usb_device_controller::handle_set_descriptor(setup_packet_t * pkt) {
     TUPP_LOG(LOG_INFO, "Set descriptor");
     assert(pkt->direction == DIR_OUT);
     assert(pkt->recipient == REC_DEVICE);
+    // Notimplemented so far
     _ep0_in->send_stall(true);
     _ep0_out->send_stall(true);
-    // Status stage
-    _ep0_in->send_zlp_data1();
 }
 
 void usb_device_controller::handle_get_configuration(setup_packet_t *pkt) {
@@ -355,11 +360,15 @@ void usb_device_controller::handle_get_interface(setup_packet_t *pkt) {
     assert(pkt->recipient == REC_INTERFACE);
     uint8_t index = pkt->wIndex & 0xff;
     if (_active_configuration) {
-        auto interface = _device._configurations[_active_configuration]->_interfaces[index];
+        auto interface = _device.configurations[_active_configuration]->interfaces[index];
         if (interface) {
             _ep0_in->start_transfer(&interface->_descriptor.bAlternateSetting, 1);
+            return;
         }
     }
+    // We did not find the interface, so stall EP0
+    _ep0_in->send_stall(true);
+    _ep0_out->send_stall(true);
 }
 
 void usb_device_controller::handle_set_interface(setup_packet_t *pkt) {
@@ -368,7 +377,7 @@ void usb_device_controller::handle_set_interface(setup_packet_t *pkt) {
     assert(pkt->recipient == REC_INTERFACE);
     uint8_t index = pkt->wIndex & 0xff;
     if (_active_configuration) {
-        auto interface = _device._configurations[_active_configuration]->_interfaces[index];
+        auto interface = _device.configurations[_active_configuration]->interfaces[index];
         if (interface) {
             interface->_descriptor.bAlternateSetting = pkt->wValue & 0xff;
         }

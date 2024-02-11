@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This is a simulator for a PDP-8, a minicomputer
 // build by Digital Equipment Corporation in the
@@ -22,7 +22,7 @@
 //
 // Use a terminal on the USB ACM device to program
 // a PDP-8 in FOCAL-69 :)
-
+//
 #include "Memory.h"
 #include "CPU.h"
 #include "Devices.h"
@@ -32,7 +32,7 @@
 #include "pico/stdlib.h"
 #include "usb_dcd_rp2040.h"
 #include "usb_device_controller.h"
-#include "usb_ms_webusb_descriptor.h"
+#include "usb_ms_compat_descriptor.h"
 #include "usb_cdc_acm_device.h"
 
 int main() {
@@ -52,7 +52,7 @@ int main() {
     device.set_Product        ("PDP8 Demo");
 
     // USB BOS descriptor
-    usb_ms_webusb_descriptor webusb(controller, device);
+    usb_ms_compat_descriptor ms_compat(controller, device);
 
     // USB configuration descriptor
     usb_configuration config(device);

@@ -16,7 +16,7 @@
 
 #include "usb_bos.h"
 #include "usb_bos_dev_cap.h"
-#include "usb_ms_common.h"
+#include "usb_ms_structs.h"
 
 class usb_bos_dev_cap_platform_ms : public usb_bos_dev_cap {
 public:

@@ -11,6 +11,8 @@
 // use library for USB host/device functionality.
 // (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+// This class represents a USB configuration
+//
 #ifndef TUPP_USB_CONFIGURATION_H
 #define TUPP_USB_CONFIGURATION_H
 
@@ -20,7 +22,7 @@ class usb_device;
 class usb_interface;
 class usb_interface_association;
 
-#include "usb_common.h"
+#include "usb_structs.h"
 #include "usb_config.h"
 #include <array>
 
@@ -31,9 +33,6 @@ public:
     // No copy, no assignment
     usb_configuration(const usb_configuration &) = delete;
     usb_configuration & operator= (const usb_configuration &) = delete;
-
-    // Our friends
-    friend class usb_device_controller;     // may access _interfaces
 
     // Methods to modify the device descriptor
     inline void set_bConfigurationValue(uint8_t n) {
@@ -53,6 +52,9 @@ public:
 
     // Read-only version of our descriptor
     const USB::configuration_descriptor_t & descriptor;
+
+    // Read-only version of our interfaces
+    const std::array<usb_interface *, TUPP_MAX_INTERF_PER_CONF> & interfaces;
 
     // (De-)Activate all endpoints in this configuration
     void activate_endpoints(bool b);

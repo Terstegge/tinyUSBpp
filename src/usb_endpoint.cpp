@@ -36,6 +36,13 @@ usb_endpoint::usb_endpoint(
     if (interface) interface->add_endpoint(this);
 }
 
+void usb_endpoint::reset() {
+    send_stall(false);
+    send_NAK(false);
+    _active = false;
+    _next_pid = 1;
+}
+
 void usb_endpoint::start_transfer(uint8_t * buffer, uint16_t len) {
     assert(!_active) ;
     // Mark this endpoint as active

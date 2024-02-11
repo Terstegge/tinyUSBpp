@@ -17,7 +17,7 @@
 #include <functional>
 using std::function;
 
-#include "usb_common.h"
+#include "usb_structs.h"
 #include "usb_config.h"
 
 class usb_endpoint;

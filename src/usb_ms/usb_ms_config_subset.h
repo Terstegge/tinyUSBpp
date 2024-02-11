@@ -19,7 +19,7 @@
 class usb_ms_header;
 class usb_ms_func_subset;
 
-#include "usb_ms_common.h"
+#include "usb_ms_structs.h"
 #include "usb_config.h"
 #include <array>
 

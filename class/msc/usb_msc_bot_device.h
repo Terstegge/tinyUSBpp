@@ -17,8 +17,8 @@
 #ifndef TUPP_USB_MSC_BOT_DEVICE_H
 #define TUPP_USB_MSC_BOT_DEVICE_H
 
-#include "usb_msc_common.h"
-#include "scsi_common.h"
+#include "usb_msc_structs.h"
+#include "scsi_structs.h"
 #include "usb_configuration.h"
 #include "usb_interface.h"
 #include "usb_endpoint.h"

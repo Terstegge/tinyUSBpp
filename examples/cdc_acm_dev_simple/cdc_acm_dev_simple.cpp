@@ -9,8 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
-//
+// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // Simple CDC ACM example. The serial device will
 // simply echo every character. This can e.g. be
@@ -21,7 +20,7 @@
 
 #include "usb_dcd_rp2040.h"
 #include "usb_device_controller.h"
-#include "usb_ms_webusb_descriptor.h"
+#include "usb_ms_compat_descriptor.h"
 #include "usb_cdc_acm_device.h"
 
 int main() {
@@ -41,7 +40,7 @@ int main() {
     device.set_Product        ("TinyUSB++ ACM Demo");
 
     // USB BOS descriptor
-    usb_ms_webusb_descriptor webusb(controller, device);
+    usb_ms_compat_descriptor ms_compat(controller, device);
 
     // USB configuration descriptor
     usb_configuration config(device);

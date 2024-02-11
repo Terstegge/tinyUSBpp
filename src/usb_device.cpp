@@ -18,7 +18,8 @@
 #include "usb_log.h"
 
 usb_device::usb_device()
-: descriptor(_descriptor), _descriptor{}, _configurations{nullptr}, _bos{nullptr}
+: descriptor(_descriptor), configurations(_configurations), bos(_bos),
+ _descriptor{},           _configurations{nullptr},        _bos{nullptr}
 {
     TUPP_LOG(LOG_DEBUG, "usb_device() @%x", this);
     // Set descriptor length

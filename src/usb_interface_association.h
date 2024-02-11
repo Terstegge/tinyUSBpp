@@ -22,7 +22,7 @@
 class usb_configuration;
 class usb_interface;
 
-#include "usb_common.h"
+#include "usb_structs.h"
 
 class usb_interface_association {
 public:

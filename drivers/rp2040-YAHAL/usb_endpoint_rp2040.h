@@ -9,7 +9,10 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+//
+// Implementation of the USB endpoint class for
+// the RP2040 using the YAHAL OS
 //
 #ifndef TUPP_USB_ENDPOINT_RP2040_H_
 #define TUPP_USB_ENDPOINT_RP2040_H_

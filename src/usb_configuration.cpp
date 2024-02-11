@@ -21,8 +21,8 @@
 using namespace USB;
 
 usb_configuration::usb_configuration(usb_device & device)
-: descriptor(_descriptor), _descriptor{},
- _interfaces{nullptr}, _associations{nullptr}
+: descriptor(_descriptor), interfaces(_interfaces),
+ _descriptor{},           _interfaces{nullptr}, _associations{nullptr}
 {
     // Set descriptor length
     _descriptor.bLength = sizeof(configuration_descriptor_t);
@@ -59,7 +59,7 @@ void usb_configuration::set_total_length() {
 
 uint8_t usb_configuration::add_interface(usb_interface * interface) {
     int i = 0;
-    for (i = 0; i < 5; ++i) {
+    for (i = 0; i < TUPP_MAX_INTERF_PER_CONF; ++i) {
         if (!_interfaces[i]) {
              _interfaces[i] = interface;
             break;

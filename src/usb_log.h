@@ -36,7 +36,12 @@ class usb_log {
 public:
     // The logger is a singleton
     static usb_log inst;
-    // Print a single log line
+    // Print a single log line. The format specifier
+    // is similar to the standard printf function.
+    // only %s (string), %d (integer) %x (hex integer)
+    // and %b (boolean) are allowed, without a width
+    // specification. A "\n" will be added to the output
+    // string automatically.
     void print(const char *file, int line, log_level l, const char *fmt, ...);
     // Set the log level
     inline void setLevel(log_level l) { _level = l; }

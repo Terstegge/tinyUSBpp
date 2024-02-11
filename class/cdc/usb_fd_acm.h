@@ -16,7 +16,7 @@
 #ifndef TUPP_USB_FD_ACM_H
 #define TUPP_USB_FD_ACM_H
 
-#include "usb_cdc_common.h"
+#include "usb_cdc_structs.h"
 #include "usb_fd_base.h"
 #include "usb_log.h"
 

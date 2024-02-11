@@ -14,7 +14,7 @@
 #ifndef TUPP_USB_MS_COMMON_H
 #define TUPP_USB_MS_COMMON_H
 
-#include "usb_common.h"
+#include "usb_structs.h"
 
 namespace USB {
 

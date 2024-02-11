@@ -22,7 +22,7 @@ class usb_ms_compatible_ID;
 class usb_ms_registry_property;
 
 #include "usb_ms_func_subset.h"
-#include "usb_ms_common.h"
+#include "usb_ms_structs.h"
 #include "usb_config.h"
 #include <array>
 

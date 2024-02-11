@@ -24,7 +24,7 @@
 class usb_device;
 class usb_bos_dev_cap;
 
-#include "usb_common.h"
+#include "usb_structs.h"
 #include "usb_config.h"
 #include <array>
 

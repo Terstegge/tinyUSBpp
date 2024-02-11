@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_dcd_rp2040.h"
 #include "usb_endpoint_rp2040.h"
@@ -64,7 +64,7 @@ usb_endpoint_rp2040::usb_endpoint_rp2040(uint8_t  addr,
     }
 
     // Initial PID value
-    next_pid = 0;
+    _next_pid = 0;
 
     // Initialize bitmask (used for some registers)
     _mask = 1 << offset;
@@ -85,7 +85,7 @@ void usb_endpoint_rp2040::_process_buffer() {
 }
 
 void usb_endpoint_rp2040::enable_endpoint(bool b) {
-    TUPP_LOG(LOG_INFO, "Endpoint 0x%x enabled: %b", descriptor.bEndpointAddress, b);
+    TUPP_LOG(LOG_INFO, "Endpoint 0x%x is enabled: %b", descriptor.bEndpointAddress, b);
     if (_endp_ctrl) {
         _endp_ctrl->ENABLE = b;
     }
@@ -105,9 +105,9 @@ void usb_endpoint_rp2040::send_stall(bool b) {
             _USBCTRL_REGS_::USBCTRL_REGS_SET.EP_STALL_ARM = _mask;
         }
         _buff_ctrl->STALL = 1;
-        next_pid = 0;
+        _next_pid = 0;
     } else {
-        next_pid = 0;
+        _next_pid = 0;
         _buff_ctrl->STALL = 0;
         _buff_ctrl->AVAILABLE_0 = 0;
     }
@@ -116,10 +116,10 @@ void usb_endpoint_rp2040::send_stall(bool b) {
 void usb_endpoint_rp2040::trigger_transfer(uint16_t len) {
     assert(_buff_ctrl->AVAILABLE_0 == 0);
     // Set pid and flip for next transfer
-    _buff_ctrl->PID_0       = next_pid;
+    _buff_ctrl->PID_0       = _next_pid;
     _buff_ctrl->FULL_0      = is_IN() ? 1 : 0;
     _buff_ctrl->LENGTH_0    = len;
-    next_pid ^= 1;
+    _next_pid ^= 1;
     // Finally mark this buffer as ready
     _buff_ctrl->AVAILABLE_0 = 1;
 }

@@ -12,7 +12,7 @@
 // (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_cdc_acm_device.h"
-#include "usb_common.h"
+#include "usb_structs.h"
 #include "usb_log.h"
 #include <cassert>
 

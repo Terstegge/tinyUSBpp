@@ -12,7 +12,7 @@
 // (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_strings.h"
-#include "usb_common.h"
+#include "usb_structs.h"
 #include "usb_log.h"
 #include <cassert>
 #include <cstring>
@@ -23,6 +23,7 @@ usb_strings usb_strings::inst;
 
 usb_strings::usb_strings() : _strings{nullptr} {
     TUPP_LOG(LOG_DEBUG, "usb_strings() @%x", this);
+    // Add the language descriptor
     add_string("\x09\x04");
 }
 
@@ -43,24 +44,24 @@ uint8_t usb_strings::add_string(const char * str) {
     return 0;
 }
 
-uint8_t usb_strings::prepare_desc_utf8(uint8_t index, uint8_t * buffer) {
-    TUPP_LOG(LOG_DEBUG, "prepare_desc_utf8([%d] %s)", index, _strings[index]);
+uint8_t usb_strings::prepare_string_desc_utf8(uint8_t index, uint8_t * buffer) {
+    TUPP_LOG(LOG_DEBUG, "prepare_string_desc_utf8([%d] %s)", index, _strings[index]);
     assert(_strings[index]);
-    // Every ascii char takes 2 bytes plus bLength and bDescriptorType
+    // Every ascii char takes 1 byte plus bLength and bDescriptorType
     uint8_t bLength = strlen(_strings[index]);
     bLength += 2;
     // Store the descriptor length
     *buffer++ = bLength;
     // Store the descriptor type
     *buffer++ = (uint8_t)bDescriptorType_t::DESC_STRING;
-    // Store the string in UTF16LE (except language id)
+    // Store the string in UTF8
     const char *str = _strings[index];
     while (*str) *buffer++ = *str++;
     return bLength;
 }
 
-uint8_t usb_strings::prepare_desc_utf16(uint8_t index, uint8_t * buffer) {
-    TUPP_LOG(LOG_DEBUG, "prepare_desc_utf16([%d] %s)", index, _strings[index]);
+uint8_t usb_strings::prepare_string_desc_utf16(uint8_t index, uint8_t * buffer) {
+    TUPP_LOG(LOG_DEBUG, "prepare_string_desc_utf16([%d] %s)", index, _strings[index]);
     assert(_strings[index]);
     // Every ascii char takes 2 bytes plus bLength and bDescriptorType
     uint8_t bLength = strlen(_strings[index]);
@@ -80,7 +81,6 @@ uint8_t usb_strings::prepare_desc_utf16(uint8_t index, uint8_t * buffer) {
     }
     return bLength;
 }
-
 
 uint16_t usb_strings::convert_to_utf16(const char * str, uint8_t * buffer) {
     TUPP_LOG(LOG_DEBUG, "convert_to_utf16(%s)", str);

@@ -14,7 +14,7 @@
 #ifndef TUPP_USB_CDC_COMMON_H_
 #define TUPP_USB_CDC_COMMON_H_
 
-#include "usb_common.h"
+#include "usb_structs.h"
 
 namespace USB::CDC {
     //////////////////////////////////

@@ -21,7 +21,7 @@ class usb_interface_association;
 class usb_endpoint;
 class usb_fd_base;
 
-#include "usb_common.h"
+#include "usb_structs.h"
 #include "usb_config.h"
 #include "usb_log.h"
 #include <array>

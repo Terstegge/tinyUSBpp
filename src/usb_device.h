@@ -16,7 +16,7 @@
 
 class usb_configuration;
 class usb_bos;
-#include "usb_common.h"
+#include "usb_structs.h"
 #include "usb_config.h"
 #include <array>
 #include <functional>
@@ -28,9 +28,6 @@ public:
     // No copy, no assignment
     usb_device(const usb_device &) = delete;
     usb_device & operator= (const usb_device &) = delete;
-
-    // Our friends
-    friend class usb_device_controller;     // may access _configurations
 
     // Methods to modify the device descriptor
     inline void set_bcdUSB(uint16_t n) {
@@ -73,6 +70,12 @@ public:
 
     // Read-only version of our descriptor
     const USB::device_descriptor_t & descriptor;
+
+    // Read-only version of our configurations
+    const std::array<usb_configuration *, TUPP_MAX_CONF_PER_DEVICE> & configurations;
+
+    // Read-only version of our BOS pointer
+    const usb_bos * const & bos;
 
     // The setup message handler which handles all
     // non-standard commands directed to this device.

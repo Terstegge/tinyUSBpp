@@ -28,10 +28,10 @@
 #include "usb_ms_compatible_ID.h"
 #include "usb_ms_registry_property.h"
 
-class usb_ms_webusb_descriptor {
+class usb_ms_compat_descriptor {
 
 public:
-    explicit usb_ms_webusb_descriptor(usb_device_controller & controller,
+    explicit usb_ms_compat_descriptor(usb_device_controller & controller,
                                       usb_device & device);
 
 private:

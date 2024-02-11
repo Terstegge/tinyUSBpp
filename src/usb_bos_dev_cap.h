@@ -21,7 +21,7 @@
 // mutual inclusions of header files)
 class usb_bos;
 
-#include "usb_common.h"
+#include "usb_structs.h"
 
 class usb_bos_dev_cap {
 public:

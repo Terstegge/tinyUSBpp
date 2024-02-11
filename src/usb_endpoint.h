@@ -11,11 +11,15 @@
 // use library for USB host/device functionality.
 // (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+// This class is the virtual base class for a concrete
+// endpoint implementation. The virtual methods will have
+// to be implemented by the hardware-specific class.
+//
 #ifndef TUPP_USB_ENDPOINT_H
 #define TUPP_USB_ENDPOINT_H
 
 class usb_interface;
-#include "usb_common.h"
+#include "usb_structs.h"
 #include "usb_config.h"
 #include <cassert>
 #include <cstdint>
@@ -49,9 +53,9 @@ public:
     inline bool is_active() const {
         return _active;
     }
-    // Send ZLP with DATA1 pid
+    // Send ZLP (Zero-Length Packet) with DATA1 pid
     inline void send_zlp_data1() {
-        assert (next_pid == 1);
+        assert (_next_pid == 1);
         start_transfer(nullptr, 0);
     }
 
@@ -67,8 +71,9 @@ public:
     // called by the usb_device_controller.
     std::function<void(USB::setup_packet_t * packet)> setup_handler;
 
-    // PID used for next transfer
-    uint8_t next_pid {0};
+    // Reset this endpoint to its default state
+    // (no stall, no NAK, not active, next PID = 1)
+    void reset();
 
     // Start a transfer on this endpoint (data stage).
     void start_transfer(uint8_t * buffer, uint16_t len);
@@ -76,14 +81,13 @@ public:
     // (De-)Activate this endpoint
     virtual void enable_endpoint(bool b) = 0;
 
-    // Reply with NAK from next packet on, unless
-    // this method is called again with 'false'.
+    // If parameter is true, reply with NAK from
+    // next packet on, until this method is called
+    // again with 'false'.
     virtual void send_NAK(bool b) = 0;
 
-    // Send a stall
+    // Stall/Un-Stall this endpoint
     virtual void send_stall(bool b) = 0;
-
-    friend class usb_device_controller;
 
 protected:
     // The endpoint CTOR is only accessible from the
@@ -95,20 +99,22 @@ protected:
             uint8_t  interval    = TUPP_DEFAULT_POLL_INTERVAL,
             usb_interface * interface = nullptr);
 
-    void handle_buffer_in(uint16_t len);
+    void handle_buffer_in (uint16_t len);
     void handle_buffer_out(uint16_t len);
 
     virtual void trigger_transfer(uint16_t len) = 0;
 
-    uint8_t *             _data_ptr {};
-    uint16_t              _data_len {};
-    uint8_t *             _current_ptr {};
-    uint16_t              _current_len {};
-    uint16_t              _bytes_left {};
+    // PID used for next transfer
+    uint8_t         _next_pid {0};
+    uint8_t *       _data_ptr {};
+    uint16_t        _data_len {};
+    uint8_t *       _current_ptr {};
+    uint16_t        _current_len {};
+    uint16_t        _bytes_left {};
 
-    volatile bool         _active {false};
+    volatile bool   _active {false};
 
-    uint8_t *             _hw_buffer {};
+    uint8_t *       _hw_buffer {};
 
     virtual ~usb_endpoint() = default;
 

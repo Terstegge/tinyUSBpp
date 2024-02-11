@@ -14,7 +14,7 @@
 #ifndef TUPP_USB_BOS_DEV_CAP_WEBUSB_MS_H
 #define TUPP_USB_BOS_DEV_CAP_WEBUSB_MS_H
 
-#include "usb_ms_common.h"
+#include "usb_ms_structs.h"
 #include "usb_bos.h"
 #include "usb_bos_dev_cap.h"
 #include "usb_strings.h"
