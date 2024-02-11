@@ -66,7 +66,7 @@ usb_endpoint_rp2040::usb_endpoint_rp2040(uint8_t  addr,
     }
 
     // Initial PID value
-    next_pid = 0;
+    _next_pid = 0;
 
     // Initialize bitmask (used for some registers)
     _mask = 1 << offset;
@@ -109,9 +109,9 @@ void usb_endpoint_rp2040::send_stall(bool b) {
             usb_hw_set->ep_stall_arm = _mask;
         }
         *_buff_ctrl |= USB_BUF_CTRL_STALL;
-        next_pid = 0;
+        _next_pid = 0;
     } else {
-        next_pid = 0;
+        _next_pid = 0;
         *_buff_ctrl &= ~(USB_BUF_CTRL_STALL | USB_BUF_CTRL_AVAIL);
     }
 }
@@ -120,10 +120,10 @@ void usb_endpoint_rp2040::trigger_transfer(uint16_t len) {
     assert((*_buff_ctrl & USB_BUF_CTRL_AVAIL) == 0);
     // Prepare buffer control value
     uint32_t reg = len | USB_BUF_CTRL_AVAIL;
-    reg |= next_pid ? USB_BUF_CTRL_DATA1_PID : USB_BUF_CTRL_DATA0_PID;
-    reg |= is_IN()  ? USB_BUF_CTRL_FULL : 0;
+    reg |= _next_pid ? USB_BUF_CTRL_DATA1_PID : USB_BUF_CTRL_DATA0_PID;
+    reg |= is_IN()   ? USB_BUF_CTRL_FULL : 0;
     // Flip PID
-    next_pid ^= 1;
+    _next_pid ^= 1;
     // Write value to register
     *_buff_ctrl = reg;
 }
