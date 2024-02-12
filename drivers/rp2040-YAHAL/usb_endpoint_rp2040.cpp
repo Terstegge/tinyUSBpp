@@ -18,7 +18,6 @@
 #include <cassert>
 
 using namespace _USBCTRL_REGS_;
-using namespace USB;
 
 uint8_t * usb_endpoint_rp2040::_next_free_buffer = (uint8_t *)&USBCTRL_DPRAM + 0x180;
 
@@ -93,16 +92,16 @@ void usb_endpoint_rp2040::enable_endpoint(bool b) {
 
 void usb_endpoint_rp2040::send_NAK(bool b) {
     if (b) {
-        _USBCTRL_REGS_::USBCTRL_REGS_SET.EP_ABORT = _mask;
+        USBCTRL_REGS_SET.EP_ABORT = _mask;
     } else {
-        _USBCTRL_REGS_::USBCTRL_REGS_CLR.EP_ABORT = _mask;
+        USBCTRL_REGS_CLR.EP_ABORT = _mask;
     }
 }
 
 void usb_endpoint_rp2040::send_stall(bool b) {
     if (b) {
         if ((descriptor.bEndpointAddress & 0xf) == 0) {
-            _USBCTRL_REGS_::USBCTRL_REGS_SET.EP_STALL_ARM = _mask;
+            USBCTRL_REGS_SET.EP_STALL_ARM = _mask;
         }
         _buff_ctrl->STALL = 1;
         _next_pid = 0;

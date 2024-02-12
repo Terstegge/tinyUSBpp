@@ -14,8 +14,8 @@
 // Implementation of the USB Device Controller Driver (DCD)
 // using the RP2040 pico-sdk
 //
-#ifndef TUPP_USB_DCD_RP2040_H_
-#define TUPP_USB_DCD_RP2040_H_
+#ifndef TUPP_USB_DCD_RP2040_H
+#define TUPP_USB_DCD_RP2040_H
 
 #include "usb_dcd_interface.h"
 #include "usb_endpoint_rp2040.h"
@@ -73,4 +73,4 @@ private:
     bool                _should_set_address;
 };
 
-#endif // TUPP_USB_DCD_RP2040_H_
+#endif // TUPP_USB_DCD_RP2040_H

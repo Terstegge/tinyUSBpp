@@ -14,7 +14,7 @@ project(cdc_acm_dev_simple C CXX ASM)
 # Initialize the SDK
 pico_sdk_init()
 
-add_subdirectory(tinyUSB++)
+add_subdirectory(../.. tinyUSB++)
 
 add_executable(cdc_acm_dev_simple
     cdc_acm_dev_simple.cpp

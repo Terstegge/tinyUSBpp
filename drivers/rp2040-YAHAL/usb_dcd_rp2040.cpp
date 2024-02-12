@@ -17,6 +17,9 @@
 #include <cstring>
 #include <cassert>
 
+using namespace _USBCTRL_REGS_;
+using namespace _RESETS_;
+
 usb_dcd_rp2040::usb_dcd_rp2040()
 : _endpoints({nullptr},{nullptr}),
   _new_addr(0), _should_set_address(false)

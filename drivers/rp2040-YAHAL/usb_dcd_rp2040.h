@@ -14,18 +14,14 @@
 // Implementation of the USB Device Controller Driver (DCD)
 // using the YAHAL OS.
 //
-#ifndef TUPP_USB_DCD_RP2040_H_
-#define TUPP_USB_DCD_RP2040_H_
+#ifndef TUPP_USB_DCD_RP2040_H
+#define TUPP_USB_DCD_RP2040_H
 
 #include "usb_dcd_interface.h"
 #include "usb_endpoint_rp2040.h"
 #include "usb_interface.h"
 
-
 #include "RP2040.h"
-using namespace _USBCTRL_DPRAM_;
-using namespace _USBCTRL_REGS_;
-using namespace _RESETS_;
 
 extern "C" {
 void USBCTRL_IRQ_Handler(void);
@@ -80,4 +76,4 @@ private:
 
 };
 
-#endif // TUPP_USB_DCD_RP2040_H_
+#endif // TUPP_USB_DCD_RP2040_H

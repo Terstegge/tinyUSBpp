@@ -14,18 +14,12 @@
 // Implementation of the USB endpoint class for
 // the RP2040 using the pico-sdk
 //
-#ifndef TUPP_USB_ENDPOINT_RP2040_H_
-#define TUPP_USB_ENDPOINT_RP2040_H_
+#ifndef TUPP_USB_ENDPOINT_RP2040_H
+#define TUPP_USB_ENDPOINT_RP2040_H
 
 class usb_interface;
 
 #include "usb_endpoint.h"
-
-// #include "RP2040.h"
-//using namespace _USBCTRL_DPRAM_;
-//using namespace _USBCTRL_REGS_;
-//using namespace _RESETS_;
-
 #include "hardware/structs/usb.h"
 
 extern "C" {
@@ -63,4 +57,4 @@ private:
     void trigger_transfer(uint16_t len) override;
 };
 
-#endif  // TUPP_USB_ENDPOINT_RP2040_H_
+#endif  // TUPP_USB_ENDPOINT_RP2040_H

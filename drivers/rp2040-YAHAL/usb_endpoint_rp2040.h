@@ -14,8 +14,8 @@
 // Implementation of the USB endpoint class for
 // the RP2040 using the YAHAL OS
 //
-#ifndef TUPP_USB_ENDPOINT_RP2040_H_
-#define TUPP_USB_ENDPOINT_RP2040_H_
+#ifndef TUPP_USB_ENDPOINT_RP2040_H
+#define TUPP_USB_ENDPOINT_RP2040_H
 
 class usb_interface;
 
@@ -23,8 +23,6 @@ class usb_interface;
 #include "RP2040.h"
 
 using namespace _USBCTRL_DPRAM_;
-using namespace _USBCTRL_REGS_;
-using namespace _RESETS_;
 
 extern "C" {
 void USBCTRL_IRQ_Handler(void);
@@ -61,4 +59,4 @@ private:
     void trigger_transfer(uint16_t len) override;
 };
 
-#endif  // TUPP_USB_ENDPOINT_RP2040_H_
+#endif  // TUPP_USB_ENDPOINT_RP2040_H

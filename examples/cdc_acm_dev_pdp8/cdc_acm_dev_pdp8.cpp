@@ -20,7 +20,7 @@
 // a simple interpreter language. A manual of this
 // language can be found in the doc folder.
 //
-// Use a terminal on the USB ACM device to program
+// Use a terminal on the CDC ACM device to program
 // a PDP-8 in FOCAL-69 :)
 //
 #include "Memory.h"
