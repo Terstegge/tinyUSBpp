@@ -10,16 +10,17 @@ Still there are some relevant differences:
 
 * tinyUSB++ is written in C++, which offers more powerfull
   programming paradigms (inheritance, virtual methods, lambdas, ...).
-  The source structure are several smaller classes, each implementing
+  The source structure consists of several smaller classes, each implementing
   a specific part of the USB descriptors or USB functionality.
 
 * tinyUSB++ does not include an additional layer like TinyUSB, where
   all interrupt events are defered to a central queue, which is then
-  handled by a non-IRQ task function. tinyUSB++ uses differnent strategies
+  handled by a non-IRQ task function. tinyUSB++ uses different strategies
   depending on the concrete driver class. A CDC device for example will
   store its data in FIFOs, which will then be accessed by the user code.
   A MSC device will have a handler function, which can then be called from
-  a task/thread of the RTOS or simply in an endless loop.
+  a task/thread of the RTOS or simply in an endless loop. From the
+  experience gained so far, this results in better performance.
 
 * tinyUSB++ handles _all_ USB descriptor stuff internally, so adding new
   functionality to an existing program (e.g. one additional ACM device)
