@@ -36,17 +36,18 @@ There are some examples for the RPi Pico (RP2040) to demomstrate the
 CDC ACM and MSC functionality. Running these example is quite
 straightforward:
 
-* Create a build folder and change the working directory to it.
-* Set your PICO_SDK_PATH or uncomment and change the line in the
+* Create a build folder below a examples folder and change the
+  working directory to it.
+* Set your PICO_SDK_PATH or uncomment and change the related line in the
   CMakeLists.txt
-* Call cmake .. and make
-* Copy the generated UF2 file to the RPi Pico
+* Call 'cmake ..' and 'make'
+* Copy the generated UF2 file to the RPi Pico - thats it!
 
 Please report if you encounter any problems using the examples!
 
 ## TODOs
 
-tinyUSB++ is for from complete and only a few weeks old. Only the CDC ACM
+tinyUSB++ is far from complete and only a few weeks old. Only the CDC ACM
 and MSC device functionality is implemented so far - all other USB classes like
 HID or audio are currently missing. The host side is missing completely.
 Still these missing parts will be hopefully added soon - driven by the
