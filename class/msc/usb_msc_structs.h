@@ -62,7 +62,6 @@ namespace USB::MSC {
     };
     static_assert(sizeof(csw_t) == 13);
 
-
 }   // namespace USB::MSC
 
 #endif  // TUPP_USB_MSC_COMMON_H

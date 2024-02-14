@@ -73,7 +73,10 @@ int main() {
     while(1) {
         uint16_t len = acm_device.read(buff, 256);
         if (len) {
-            acm_device.write(buff, len);
+            uint32_t written = 0;
+            while(written != len) {
+                written += acm_device.write(buff+written, len-written);
+            }
         }
     }
 }

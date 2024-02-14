@@ -18,9 +18,7 @@
 
 namespace SCSI {
 
-    ///////////////////////////
     // SCSI command op codes //
-    ///////////////////////////
     enum class scsi_cmd_t : uint8_t  {
         TEST_UNIT_READY                 = 0x00,
         REQUEST_SENSE                   = 0x03,
@@ -43,6 +41,58 @@ namespace SCSI {
         uint8_t     control;
     };
     static_assert(sizeof(test_unit_ready_t) == 6);
+
+    // REQUEST SENSE
+    ////////////////
+    struct __attribute__((__packed__)) request_sense_t {
+        scsi_cmd_t  cmd;
+        uint8_t     reserved[3];
+        uint8_t     alloc_length;
+        uint8_t     control;
+    };
+    static_assert(sizeof(request_sense_t) == 6);
+
+    enum class sense_key_t : uint8_t  {
+        NONE            = 0x00,
+        RECOVERED_ERROR = 0x01,
+        NOT_READY       = 0x02,
+        MEDIUM_ERROR    = 0x03,
+        HARDWARE_ERROR  = 0x04,
+        ILLEGAL_REQUEST = 0x05,
+        UNIT_ATTENTION  = 0x06,
+        DATA_PROTECT    = 0x07,
+        BLANK_CHECK     = 0x08,
+        VENDOR_SPECIFIC = 0x09,
+        COPY_ABORTED    = 0x0a,
+        ABORTED_COMMAND = 0x0b,
+        RESERVED        = 0x0c,
+        VOLUME_OVERFLOW = 0x0d,
+        MISCOMPARE      = 0x0e,
+        COMPLETED       = 0x0f
+    };
+
+    struct __attribute__((__packed__)) request_sense_fixed_response_t {
+        uint8_t     response_code : 7 {0};
+        uint8_t     valid         : 1 {0};
+
+        uint8_t     reserved {0};
+
+        sense_key_t sense_key     : 4 {0};
+        uint8_t                   : 1;
+        uint8_t     ili           : 1 {0};
+        uint8_t     end_of_medium : 1 {0};
+        uint8_t     filemark      : 1 {0};
+
+        uint32_t    information {0};
+        uint8_t     add_sense_len {0};
+        uint32_t    cmd_specific_information {0};
+        uint8_t     add_sense_code {0};
+        uint8_t     add_sense_qualifier {0};
+        uint8_t     field_replaceable_unit_code {0};
+
+        uint8_t     sense_key_specific[3] {0};
+    };
+    static_assert(sizeof(request_sense_fixed_response_t) == 18);
 
     // INQUIRY
     //////////
@@ -151,14 +201,13 @@ namespace SCSI {
         uint8_t medium_type;
 
         uint8_t                             : 4;
-        uint8_t dpo_fua_support             : 1;
+        uint8_t dpo_fua_support             : 1 {0};
         uint8_t                             : 2;
-        uint8_t write_protect               : 1;
+        uint8_t write_protect               : 1 {0};
 
-        uint8_t block_descriptor_length;
+        uint8_t block_descriptor_length {0};
     };
     static_assert(sizeof(mode_sense_6_response_t) == 4);
-
 
     // READ CAPACITY (10)
     /////////////////////
@@ -170,11 +219,10 @@ namespace SCSI {
     static_assert(sizeof(read_capacity_10_t) == 10);
 
     struct __attribute__((__packed__)) read_capacity_10_response_t {
-        uint32_t    logical_block_address;
-        uint32_t    block_length;
+        uint32_t    logical_block_address {0};
+        uint32_t    block_length {0};
     };
     static_assert(sizeof(read_capacity_10_t) == 10);
-
 
     // READ FORMAT CAPACITY
     ///////////////////////
@@ -187,14 +235,14 @@ namespace SCSI {
     static_assert(sizeof(read_format_capacity_10_t) == 10);
 
     struct __attribute__((__packed__)) read_format_capacity_10_response_t {
-        uint8_t     reserved[3];
-        uint8_t     list_length; /// must be 8*n, length in bytes of formattable capacity descriptor followed it.
+        uint8_t     reserved[3] {0};
+        uint8_t     list_length {0};
 
-        uint32_t    block_num; /// Number of Logical Blocks
-        uint8_t     descriptor_type; // 00: reserved, 01 unformatted media , 10 Formatted media, 11 No media present
+        uint32_t    block_num {0};
+        uint8_t     descriptor_type {0};
 
-        uint8_t     reserved2;
-        uint16_t    block_size_u16;
+        uint8_t     reserved2 {0};
+        uint16_t    block_size_u16 {0};
     };
     static_assert(sizeof(read_format_capacity_10_t) == 10);
 
@@ -210,6 +258,8 @@ namespace SCSI {
     };
     static_assert(sizeof(read_10_t) == 10);
 
+    // WRITE_10
+    ///////////
     struct __attribute__((__packed__)) write_10_t {
         scsi_cmd_t  cmd;
         uint8_t     reserved;

@@ -114,6 +114,7 @@ usb_endpoint * usb_dcd_rp2040::create_endpoint(
         }
     }
     assert(!"Could not find a free endpoint!");
+    return nullptr;
 }
 
 extern "C" {

@@ -20,8 +20,8 @@
 #include "usb_device_controller.h"
 #include "usb_bos.h"
 #include "usb_device.h"
-#include "usb_bos_dev_cap_webusb_ms.h"
-#include "usb_bos_dev_cap_platform_ms.h"
+#include "usb_ms_dev_cap_webusb.h"
+#include "usb_ms_dev_cap_platform.h"
 #include "usb_ms_header.h"
 #include "usb_ms_func_subset.h"
 #include "usb_ms_config_subset.h"
@@ -43,7 +43,7 @@ private:
     // The WebUSB descriptor structure, based on a BOS (Binary Object Storage)
     usb_bos                     _bos;
 //    usb_bos_dev_cap_webusb_ms   _web_platform       {_bos};
-    usb_bos_dev_cap_platform_ms _cap_platform       {_bos};
+    usb_ms_dev_cap_platform _cap_platform       {_bos};
     usb_ms_header               _ms_header          {_cap_platform};
     usb_ms_config_subset        _ms_config_subset   {_ms_header};
     usb_ms_func_subset          _ms_func_subset     {_ms_config_subset};

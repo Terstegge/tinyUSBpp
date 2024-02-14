@@ -55,7 +55,9 @@ void Device_TTO::processPulse(unsigned int pulse, CPU & cpu) {
     case 4: {
         c = cpu.getAC() & 0177;
         if (c == 127) c = 7;
-        if (c !=  12) _acm.write(&c, 1);
+        if (c !=  12) {
+            while (!_acm.write(&c, 1));
+        }
         // Ready to receive the next character
         FLAG=true;
         break;

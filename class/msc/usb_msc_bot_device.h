@@ -33,38 +33,48 @@ public:
     usb_msc_bot_device(usb_device_controller & controller,
                        usb_configuration     & configuration);
 
-    void handle_request();
+    // Handle next MSC request. Method will return true if
+    // some command has been handled, false if not.
+    bool handle_request();
 
     // Callback handler to get the block size and block count of the device.
     // block size should normally be TUPP_MSC_BLOCK_SIZE, other cases are
     // currently not supported.
     std::function<void(uint16_t & block_size, uint32_t & block_count)> capacity_handler;
 
-    // Callback handler to read a number of blocks from the device
+    // Callback handler to read a single block from the device
     std::function<void(uint8_t * buff, uint32_t block)> read_handler;
 
-    // Callback handler to write a number of blocks to the device
+    // Callback handler to write a single block to the device
     std::function<void(uint8_t * buff, uint32_t block)> write_handler;
 
-    // Activity handler to get information about ongoing read or write
-    // operations. This handler can e.g. control some LEDs.
-    std::function<void(bool read, bool write)> activity_handler;
+    // Callback handler to get the 'writable' state
+    std::function<bool()> is_writeable_handler;
 
     // Setters for IDs in inquiry response
     inline void set_vendor_id(const char * id) {
         TUPP_LOG(LOG_DEBUG, "set_vendor_id(%s)", id);
-        assert(strlen(id) <= 8);
-        strncpy((char*)_inquiry_response.vendor_id, id, 8);
+        if (strlen(id) > 8) {
+            TUPP_LOG(LOG_WARNING, "SCSI Vendor ID too long. Truncated!");
+        }
+        strncpy((char*)_inquiry_response.vendor_id, id,
+                sizeof _inquiry_response.vendor_id);
     }
     inline void set_product_id(const char * id) {
         TUPP_LOG(LOG_DEBUG, "set_product_id(%s)", id);
-        assert(strlen(id) <= 16);
-        strncpy((char*)_inquiry_response.product_id, id, 16);
+        if (strlen(id) > 16) {
+            TUPP_LOG(LOG_WARNING, "SCSI Product ID too long. Truncated!");
+        }
+        strncpy((char*)_inquiry_response.product_id, id,
+                sizeof _inquiry_response.product_id);
     }
     inline void set_product_rev(const char * rev) {
         TUPP_LOG(LOG_DEBUG, "set_product_rev(%s)", rev);
-        assert(strlen(rev) <= 4);
-        strncpy((char*)_inquiry_response.product_rev, rev, 4);
+        if (strlen(rev) > 4) {
+            TUPP_LOG(LOG_WARNING, "SCSI Product Rev too long. Truncated!");
+        }
+        strncpy((char*)_inquiry_response.product_rev, rev,
+                sizeof _inquiry_response.product_rev);
     }
 
 private:
@@ -78,7 +88,7 @@ private:
 
     // CDC ACM descriptor tree
     usb_configuration &         _configuration;
-    usb_interface               _interface  {_configuration};
+    usb_interface               _interface {_configuration};
 
     // USB endpoints
     usb_endpoint *              _ep_in  {nullptr};
@@ -96,6 +106,7 @@ private:
 
     // Various SCSI response types
     SCSI::inquiry_response_t                    _inquiry_response;
+    SCSI::request_sense_fixed_response_t        _sense_fixed_response;
     SCSI::read_capacity_10_response_t           _read_capacity_10_response;
     SCSI::read_format_capacity_10_response_t    _read_format_capacity_10_response;
     SCSI::mode_sense_6_response_t               _mode_sense_6_response;

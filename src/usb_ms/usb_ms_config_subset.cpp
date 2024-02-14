@@ -13,7 +13,6 @@
 //
 #include "usb_ms_config_subset.h"
 #include "usb_ms_header.h"
-#include "usb_bos_dev_cap_platform_ms.h"
 #include <cassert>
 
 usb_ms_config_subset::usb_ms_config_subset(usb_ms_header & header)

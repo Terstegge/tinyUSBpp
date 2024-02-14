@@ -16,7 +16,7 @@
 
 // Forward declarations (to prevent
 // mutual inclusions of header files)
-class usb_bos_dev_cap_platform_ms;
+class usb_ms_dev_cap_platform;
 class usb_ms_config_subset;
 
 #include "usb_ms_structs.h"
@@ -25,7 +25,7 @@ class usb_ms_config_subset;
 
 class usb_ms_header {
 public:
-    explicit usb_ms_header(usb_bos_dev_cap_platform_ms & cap);
+    explicit usb_ms_header(usb_ms_dev_cap_platform & cap);
 
     // No copy, no assignment
     usb_ms_header(const usb_ms_header &) = delete;
@@ -52,7 +52,7 @@ private:
     USB::ms_header_t _descriptor;
 
     // Parent
-    usb_bos_dev_cap_platform_ms & _dev_cap_platform_ms;
+    usb_ms_dev_cap_platform & _dev_cap_platform_ms;
 };
 
 #endif  // TUPP_USB_MS_HEADER_H

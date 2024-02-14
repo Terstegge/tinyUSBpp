@@ -85,6 +85,7 @@ usb_cdc_acm_device::usb_cdc_acm_device(
         // Copy all available bytes to the fifo
         for (int i=0; i < len; ++i) {
             bool b = _received_data.put(buf[i]);
+            (void)b;
             assert(b);
         }
         // Trigger a new receive
@@ -115,6 +116,8 @@ usb_cdc_acm_device::usb_cdc_acm_device(
                 assert(pkt->wLength == sizeof(_line_coding) );
                 // Set the data handler
                 controller.handler = [&] (const uint8_t * data, uint16_t len) {
+                    (void)data;
+                    (void)len;
                     assert(data == (uint8_t *)&line_coding);
                     assert(len  == sizeof(CDC::line_coding_t));
                     if (line_coding_handler) {
@@ -180,12 +183,12 @@ uint16_t usb_cdc_acm_device::available() {
     return _received_data.available_get();
 }
 
-bool usb_cdc_acm_device::write(const uint8_t *buf, uint16_t len) {
-    if (_data_to_transmit.available_put() < len) {
-        return false;
-    }
-    for(int i=0; i < len; ++i) {
-        _data_to_transmit.put(buf[i]);
+uint32_t usb_cdc_acm_device::write(const uint8_t *buf, uint32_t len) {
+    uint32_t written = 0;
+    for(uint32_t i=0; i < len; ++i) {
+        if (_data_to_transmit.put(buf[i])) {
+            written++;
+        } else break;
     }
     // Check if we need a new initial transfer
     // if the endpoint is currently not active
@@ -194,7 +197,7 @@ bool usb_cdc_acm_device::write(const uint8_t *buf, uint16_t len) {
         // looks at the FIFO to decide whether to send data!
         _ep_data_in->data_handler(nullptr, 0);
     }
-    return true;
+    return written;
 }
 
 bool usb_cdc_acm_device::notify_serial_state(const USB::CDC::bmUartState_t & state) {

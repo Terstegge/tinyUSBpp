@@ -310,6 +310,7 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
 
 void usb_device_controller::handle_set_descriptor(setup_packet_t * pkt) {
     TUPP_LOG(LOG_INFO, "Set descriptor");
+    (void)pkt;
     assert(pkt->direction == DIR_OUT);
     assert(pkt->recipient == REC_DEVICE);
     // Notimplemented so far
@@ -319,6 +320,7 @@ void usb_device_controller::handle_set_descriptor(setup_packet_t * pkt) {
 
 void usb_device_controller::handle_get_configuration(setup_packet_t *pkt) {
     TUPP_LOG(LOG_INFO, "Get descriptor");
+    (void)pkt;
     assert(pkt->direction == DIR_IN);
     assert(pkt->recipient == REC_DEVICE);
     _ep0_in->start_transfer((uint8_t *)(&_active_configuration), 1);

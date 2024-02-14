@@ -33,22 +33,23 @@ usb_msc_bot_device::usb_msc_bot_device(
 :  _configuration(configuration), _max_lun(0), _state(state_t::RECEIVE_CBW), _buffer_out_len(0)
 {
     // USB interface descriptor config
-    //////////////////////////////////
     _interface.set_bInterfaceClass   (IF_CLASS_MSC);
     _interface.set_bInterfaceSubClass(IF_SUBCLASS_SCSI_TRANSPARENT);
     _interface.set_bInterfaceProtocol(IF_PROTOCOL_MSC_BOT);
 
     // USB endpoints
-    ////////////////
     _ep_in  = controller.create_endpoint(_interface, DIR_IN,  TRANS_BULK);
     _ep_out = controller.create_endpoint(_interface, DIR_OUT, TRANS_BULK);
 
     // Prepare new request to receive data
-    //////////////////////////////////////
+    // Note: We can NOT receive larger blocks than TUPP_MSC_BLOCK_SIZE here,
+    // because a partial USB packet will not be detected. If we e.g. ask for
+    // 1024 bytes, but the device answers only with 512 bytes, we are at a
+    // clean 64-byte border and would wait for more packets, which would
+    // never be received.
     _ep_out->start_transfer(_buffer_out, TUPP_MSC_BLOCK_SIZE);
 
     // Endpoint handler
-    ///////////////////
     _ep_out->data_handler = [&](uint8_t *, uint16_t len) {
         if (_buffer_out_len) {
             TUPP_LOG(LOG_WARNING, "Unconsumed data!");
@@ -62,7 +63,6 @@ usb_msc_bot_device::usb_msc_bot_device(
     };
 
     // Handler for CDC ACM specific requests
-    ////////////////////////////////////////
     _interface.setup_handler = [&](USB::setup_packet_t *pkt) {
         switch(pkt->bRequest) {
             case bRequest_t::REQ_MSC_BOT_RESET: {
@@ -75,8 +75,7 @@ usb_msc_bot_device::usb_msc_bot_device(
                 TUPP_LOG(LOG_INFO, "REQ_MSC_GET_MAX_LUN");
                 assert(pkt->wValue  == 0);
                 assert(pkt->wLength == 1);
-                controller._ep0_in->send_stall(true);
-//                controller._ep0_in->start_transfer(&_max_lun, 1);
+                controller._ep0_in->start_transfer(&_max_lun, 1);
                 break;
             }
             default: {
@@ -86,7 +85,6 @@ usb_msc_bot_device::usb_msc_bot_device(
     };
 
     // Initialize SCSI inquiry response
-    ///////////////////////////////////
     _inquiry_response.peripheral_device    = SBC_4_DIRECT_ACCESS;
     _inquiry_response.peripheral_qualifier = DEVICE_CONNECTED_TO_LUN;
     _inquiry_response.removable_media      = 1;
@@ -106,7 +104,7 @@ usb_msc_bot_device::usb_msc_bot_device(
 
 // This method implements a simple state machine
 // according to the MSC BOT specification
-void usb_msc_bot_device::handle_request() {
+bool usb_msc_bot_device::handle_request() {
     switch(_state) {
         case state_t::RECEIVE_CBW: {
             // Did we receive some data?
@@ -135,7 +133,7 @@ void usb_msc_bot_device::handle_request() {
                     _buffer_out_len = 0;
                     // Continue with sending the CSW
                     _state = state_t::SEND_CSW;
-                    return;
+                    return true;
                 }
 
                 // Continue with sending the CSW
@@ -146,8 +144,10 @@ void usb_msc_bot_device::handle_request() {
                 // Signal that data has been processed
                 _buffer_out_len = 0;
                 _ep_out->send_NAK(false);
+                return true;
+            } else {
+                break;
             }
-            break;
         }
         case state_t::DATA_READ: {
             if (_ep_in->is_active()) {
@@ -161,7 +161,7 @@ void usb_msc_bot_device::handle_request() {
             if (_blocks_transferred == _blocks_to_transfer) {
                 _state = state_t::SEND_CSW;
             }
-            break;
+            return true;
         }
         case state_t::DATA_WRITE: {
             if (_buffer_out_len == 0) {
@@ -172,26 +172,26 @@ void usb_msc_bot_device::handle_request() {
             // Write data to device
             write_handler(_buffer_out, _block_addr++);
             _blocks_transferred++;
-            // Mark as consumed
+            // Mark as consumed and accept new packets
             _buffer_out_len = 0;
+            _ep_out->send_NAK(false);
+            // Check if complete transfer has finished
             if (_blocks_transferred == _blocks_to_transfer) {
                 _state = state_t::SEND_CSW;
             }
-            _buffer_out_len = 0;
-            _ep_out->send_NAK(false);
-            break;
+            return true;
         }
         case state_t::SEND_CSW: {
             TUPP_LOG(LOG_DEBUG, "STATE: SEND_CSW");
-            activity_handler(false, false);
             if (_ep_in->is_active()) {
                 break;
             }
             _ep_in->start_transfer((uint8_t *)&_csw, sizeof(_csw));
             _state = state_t::RECEIVE_CBW;
-            break;
+            return true;
         }
     }
+    return false;
 }
 
 void usb_msc_bot_device::process_scsi_command() {
@@ -204,6 +204,15 @@ void usb_msc_bot_device::process_scsi_command() {
             TUPP_LOG(LOG_INFO, "SCSI: TEST_UNIT_READY");
             assert(cbw->bCBWCBLength == sizeof(SCSI::test_unit_ready_t));
             assert(cbw->dCBWDataTransferLength == 0);
+            break;
+        }
+        case SCSI::scsi_cmd_t::REQUEST_SENSE: {
+            TUPP_LOG(LOG_INFO, "SCSI: REQUEST_SENSE");
+            assert(cbw->bCBWCBLength == sizeof(SCSI::request_sense_t));
+            // Send the response
+            while(_ep_in->is_active()) ;
+            _ep_in->start_transfer((uint8_t *)&_sense_fixed_response,
+                                   sizeof(SCSI::request_sense_fixed_response_t));
             break;
         }
         case SCSI::scsi_cmd_t::INQUIRY: {
@@ -220,9 +229,13 @@ void usb_msc_bot_device::process_scsi_command() {
         case SCSI::scsi_cmd_t::MODE_SENSE_6: {
             TUPP_LOG(LOG_INFO, "SCSI: MODE_SENSE_6");
             assert(cbw->bCBWCBLength == sizeof(SCSI::mode_sense_6_t));
+            bool write_protect = false;
+            if (is_writeable_handler) {
+                write_protect = !is_writeable_handler();
+            }
             _mode_sense_6_response.mode_data_length = 3;
             _mode_sense_6_response.medium_type      = 0;
-            _mode_sense_6_response.write_protect    = 0;
+            _mode_sense_6_response.write_protect    = write_protect;
             _mode_sense_6_response.block_descriptor_length = 0;
             // Send the response
             while(_ep_in->is_active()) ;
@@ -276,7 +289,6 @@ void usb_msc_bot_device::process_scsi_command() {
             break;
         }
         case SCSI::scsi_cmd_t::READ_10: {
-            activity_handler(true, false);
             assert(cbw->bCBWCBLength == sizeof(SCSI::read_10_t));
             auto * read_cmd = (SCSI::read_10_t *)&cbw->CBWCB;
             _blocks_to_transfer = __ntohs(read_cmd->transfer_length);
@@ -288,14 +300,29 @@ void usb_msc_bot_device::process_scsi_command() {
         }
         case SCSI::scsi_cmd_t::WRITE_10: {
             _buffer_out_len = 0;
-            activity_handler(false, true);
             assert(cbw->bCBWCBLength == sizeof(SCSI::write_10_t));
-            auto * write_cmd = (SCSI::read_10_t *)&cbw->CBWCB;
-            _blocks_to_transfer = __ntohs(write_cmd->transfer_length);
-            _blocks_transferred = 0;
-            _block_addr = __ntohl(write_cmd->logical_block_address);
-            _state = state_t::DATA_WRITE;
-            TUPP_LOG(LOG_INFO, "SCSI: WRITE_10 (%d blocks)", _blocks_to_transfer);
+            auto * write_cmd = (SCSI::write_10_t *)&cbw->CBWCB;
+            // Check if we may write to this device
+            bool write_protect = false;
+            if (is_writeable_handler) {
+                write_protect = !is_writeable_handler();
+            }
+            if (write_protect) {
+                TUPP_LOG(LOG_WARNING, "SCSI: Write on write-protected device!");
+                _csw.bCSWStatus = MSC::csw_status_t::CMD_FAILED;
+                _sense_fixed_response.response_code         = 0x70;
+                _sense_fixed_response.valid                 = 1;
+                _sense_fixed_response.sense_key             = SCSI::sense_key_t::DATA_PROTECT;
+                _sense_fixed_response.add_sense_len         = sizeof(_sense_fixed_response) - 8;
+                _sense_fixed_response.add_sense_code        = 0x27;
+                _sense_fixed_response.add_sense_qualifier   = 0x00;
+            } else {
+                _blocks_to_transfer = __ntohs(write_cmd->transfer_length);
+                _blocks_transferred = 0;
+                _block_addr = __ntohl(write_cmd->logical_block_address);
+                _state = state_t::DATA_WRITE;
+                TUPP_LOG(LOG_INFO, "SCSI: WRITE_10 (%d blocks)", _blocks_to_transfer);
+            }
             // Let the next block arrive
             _buffer_out_len = 0;
             _ep_out->send_NAK(false);
