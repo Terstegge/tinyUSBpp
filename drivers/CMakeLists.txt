@@ -1,13 +1,13 @@
 if (YAHAL_DIR)
     if (${YAHAL_MCU} STREQUAL "rp2040")
         add_subdirectory(rp2040-YAHAL)
-        target_include_directories(${tinyUSB++_TARGET}
+        target_include_directories(${TUPP_TARGET}
                 INTERFACE ${YAHAL_DIR}/include/MCU/rp2040
                 INTERFACE ${YAHAL_DIR}/include/CPU/CMSIS
         )
     elseif (${YAHAL_MCU} STREQUAL "rp2350")
         add_subdirectory(rp2350-YAHAL)
-        target_include_directories(${tinyUSB++_TARGET}
+        target_include_directories(${TUPP_TARGET}
                 INTERFACE ${YAHAL_DIR}/include/MCU/rp2350
                 INTERFACE ${YAHAL_DIR}/include/CPU/CMSIS
         )
