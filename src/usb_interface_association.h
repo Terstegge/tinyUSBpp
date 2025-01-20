@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class represents a USB interface association descriptor,
 // which can be added to a USB configuration.
@@ -33,13 +33,13 @@ public:
     usb_interface_association & operator= (const usb_interface_association &) = delete;
 
     // Methods to set the descriptor elements
-    inline void set_bFunctionClass(USB::bInterfaceClass_t n) {
+    inline void set_bFunctionClass(TUPP::bInterfaceClass_t n) {
         _descriptor.bFunctionClass = n;
     }
-    inline void set_bFunctionSubClass(USB::bInterfaceSubClass_t  n) {
+    inline void set_bFunctionSubClass(TUPP::bInterfaceSubClass_t  n) {
         _descriptor.bFunctionSubClass = n;
     }
-    inline void set_bFunctionProtocol(USB::bInterfaceProtocol_t n) {
+    inline void set_bFunctionProtocol(TUPP::bInterfaceProtocol_t n) {
         _descriptor.bFunctionProtocol = n;
     }
     void set_FunctionName(const char *);
@@ -55,13 +55,14 @@ public:
     }
 
     // Read-only version of our descriptor
-    const USB::interface_association_descriptor_t & descriptor;
+    const TUPP::interface_association_descriptor_t & descriptor;
 
 private:
     usb_configuration & _parent;
 
     // The interface association descriptor
-    USB::interface_association_descriptor_t _descriptor;
+    TUPP::interface_association_descriptor_t _descriptor;
 };
 
 #endif  // TUPP_USB_INTERFACE_ASSOCIATION_H
+

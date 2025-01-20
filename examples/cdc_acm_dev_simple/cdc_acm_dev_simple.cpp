@@ -18,14 +18,14 @@
 #include <cctype>
 #include "pico/stdlib.h"
 
-#include "usb_dcd_rp2040.h"
+#include "usb_dcd.h"
 #include "usb_device_controller.h"
 #include "usb_ms_compat_descriptor.h"
 #include "usb_cdc_acm_device.h"
 
 int main() {
     // USB Device driver
-    usb_dcd_rp2040 & driver = usb_dcd_rp2040::inst();
+    usb_dcd & driver = usb_dcd::inst();
     // USB device: Root object of USB descriptor tree
     usb_device device;
     // Put generic USB Device Controller on top

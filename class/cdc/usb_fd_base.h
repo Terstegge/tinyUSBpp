@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This is the base class for various functional descriptors
 //
@@ -44,3 +44,4 @@ protected:
 };
 
 #endif  // TUPP_USB_FD_BASE_H
+

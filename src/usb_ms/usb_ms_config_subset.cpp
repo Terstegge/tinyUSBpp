@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_ms_config_subset.h"
 #include "usb_ms_header.h"
@@ -19,11 +19,11 @@ usb_ms_config_subset::usb_ms_config_subset(usb_ms_header & header)
 : descriptor{_descriptor}, _func_subsets{}, _descriptor{}, _ms_header{header}
 {
     // Set header values
-    _descriptor.wLength             = sizeof(USB::ms_config_subset_header_t);
-    _descriptor.wDescriptorType     = USB::wDescriptorType_t::DESC_CONFIG_SUBSET;
+    _descriptor.wLength             = sizeof(TUPP::ms_config_subset_header_t);
+    _descriptor.wDescriptorType     = TUPP::wDescriptorType_t::DESC_CONFIG_SUBSET;
     _descriptor.bConfigurationValue = 0;
     _descriptor.bReserved           = 0;
-    inc_total_length(sizeof(USB::ms_config_subset_header_t));
+    inc_total_length(sizeof(TUPP::ms_config_subset_header_t));
     _ms_header.add_ms_config_subset(this);
 }
 

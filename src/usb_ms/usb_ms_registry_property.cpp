@@ -9,24 +9,24 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_ms_registry_property.h"
 #include "usb_ms_func_subset.h"
 #include "usb_strings.h"
 
-using namespace USB;
+using namespace TUPP;
 
 #define REG_MULTI_SZ 7
 
 usb_ms_registry_property::usb_ms_registry_property(usb_ms_func_subset & func_subset)
-: _func_subset(func_subset), _desc_buffer{}, _next_free_byte{_desc_buffer}
+: _func_subset(func_subset), _desc_buffer{0}, _next_free_byte{_desc_buffer}
 {
     // Set header values
-    descriptor()->wLength           = sizeof(USB::ms_reg_prop_header_t);
-    descriptor()->wDescriptorType   = USB::wDescriptorType_t::DESC_REG_PROP;
+    descriptor()->wLength           = sizeof(TUPP::ms_reg_prop_header_t);
+    descriptor()->wDescriptorType   = TUPP::wDescriptorType_t::DESC_REG_PROP;
     descriptor()->wPropertyDataType = REG_MULTI_SZ;
-    _next_free_byte += sizeof(USB::ms_reg_prop_header_t);
+    _next_free_byte += sizeof(TUPP::ms_reg_prop_header_t);
     _func_subset.add_registry_property(this);
 }
 

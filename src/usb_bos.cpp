@@ -9,14 +9,15 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_bos.h"
 #include "usb_bos_dev_cap.h"
 #include "usb_device.h"
 #include <cassert>
+#include <cstring>
 
-using namespace USB;
+using namespace TUPP;
 
 usb_bos::usb_bos(usb_device & device)
 : descriptor(_descriptor), _descriptor{}, _capabilities{nullptr}
@@ -56,4 +57,18 @@ void usb_bos::set_total_length() {
         len += _capabilities[i]->get_bLength();
     }
     _descriptor.wTotalLength = len;
+}
+
+uint16_t usb_bos::prepare_descriptor(uint8_t * buffer, uint16_t size) const {
+    uint8_t * tmp_ptr = buffer;
+    memcpy(tmp_ptr, &_descriptor, sizeof(TUPP::bos_descriptor_t));
+    tmp_ptr += sizeof(TUPP::bos_descriptor_t);
+    assert((tmp_ptr-buffer) <= size);
+    for (int i=0; i < _descriptor.bNumDeviceCaps; ++i) {
+        uint16_t cap_len = _capabilities[i]->get_bLength();
+        memcpy(tmp_ptr, _capabilities[i]->get_desc_ptr(), cap_len);
+        tmp_ptr += cap_len;
+        assert((tmp_ptr-buffer) <= size);
+    }
+    return tmp_ptr-buffer;
 }

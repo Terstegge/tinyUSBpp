@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_fd_call_mgmt.h"
 #include "usb_interface.h"
@@ -19,8 +19,8 @@ usb_fd_call_mgmt::usb_fd_call_mgmt(usb_interface & i)
 {
     TUPP_LOG(LOG_DEBUG, "usb_fd_call_mgmt() @%x", this);
     _descriptor.bLength            = sizeof(_descriptor);
-    _descriptor.bDescriptorType    = USB::CDC::func_desc_type_t::CS_INTERFACE;
-    _descriptor.bDescriptorSubType = USB::CDC::func_desc_subtype_t::CDC_FUNC_DESC_CALL_MANAGEMENT;
+    _descriptor.bDescriptorType    = TUPP::CDC::func_desc_type_t::CS_INTERFACE;
+    _descriptor.bDescriptorSubType = TUPP::CDC::func_desc_subtype_t::CDC_FUNC_DESC_CALL_MANAGEMENT;
 
     // Add this functional descriptor to the parent interface
     _parent.add_func_descriptor(this);

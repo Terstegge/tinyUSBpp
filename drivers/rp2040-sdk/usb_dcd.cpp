@@ -9,9 +9,9 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#include "usb_dcd_rp2040.h"
+#include "usb_dcd.h"
 #include "usb_endpoint_rp2040.h"
 #include "usb_log.h"
 #include <cstring>
@@ -24,7 +24,7 @@
 #define usb_hw_set   ((usb_hw_t *)hw_set_alias_untyped(usb_hw))
 #define usb_hw_clear ((usb_hw_t *)hw_clear_alias_untyped(usb_hw))
 
-usb_dcd_rp2040::usb_dcd_rp2040()
+usb_dcd::usb_dcd()
 : _endpoints({nullptr},{nullptr}),
   _new_addr(0), _should_set_address(false)
 {
@@ -62,34 +62,34 @@ usb_dcd_rp2040::usb_dcd_rp2040()
     irq_set_enabled(USBCTRL_IRQ, true);
 }
 
-void usb_dcd_rp2040::pullup_enable(bool e) {
+void usb_dcd::pullup_enable(bool e) {
     usb_hw_set->sie_ctrl = USB_SIE_CTRL_PULLUP_EN_BITS;
 }
 
-void usb_dcd_rp2040::irq_enable(bool e) {
+void usb_dcd::irq_enable(bool e) {
     irq_set_enabled(USBCTRL_IRQ, e);
 }
 
-void usb_dcd_rp2040::set_address(uint8_t addr) {
+void usb_dcd::set_address(uint8_t addr) {
     _new_addr = addr;
     TUPP_LOG(LOG_INFO, "Set USB address %d", _new_addr);
     _should_set_address = true;
 }
 
-void usb_dcd_rp2040::check_address() {
+void usb_dcd::check_address() {
     if (_should_set_address) {
         usb_hw->dev_addr_ctrl = _new_addr;
         _should_set_address = false;
     }
 }
 
-void usb_dcd_rp2040::reset_address() {
+void usb_dcd::reset_address() {
     _new_addr = 0;
     _should_set_address = false;
     usb_hw->dev_addr_ctrl = 0;
 }
 
-usb_endpoint * usb_dcd_rp2040::create_endpoint(
+usb_endpoint * usb_dcd::create_endpoint(
         uint8_t addr,
         ep_attributes_t type,
         uint16_t packet_size,
@@ -98,7 +98,7 @@ usb_endpoint * usb_dcd_rp2040::create_endpoint(
     return new usb_endpoint_rp2040(addr, type, packet_size, interval, interface);
 }
 
-usb_endpoint * usb_dcd_rp2040::create_endpoint(
+usb_endpoint * usb_dcd::create_endpoint(
         direction_t     direction,
         ep_attributes_t type,
         uint16_t        packet_size,
@@ -122,12 +122,12 @@ void isr_usbctrl(void) {
     // Setup packet received
     if (status & USB_INTS_SETUP_REQ_BITS) {
         usb_hw_clear->sie_status = USB_SIE_STATUS_SETUP_REC_BITS;
-        usb_dcd_rp2040::inst().setup_handler((USB::setup_packet_t *)USBCTRL_DPRAM_BASE);
+        usb_dcd::inst().setup_handler((TUPP::setup_packet_t *)USBCTRL_DPRAM_BASE);
     }
     // Bus is reset
     if (status & USB_INTS_BUS_RESET_BITS) {
         usb_hw_clear->sie_status = USB_SIE_STATUS_BUS_RESET_BITS;
-        usb_dcd_rp2040::inst().bus_reset_handler();
+        usb_dcd::inst().bus_reset_handler();
     }
     // Buffer status, one or more buffers have completed
     if (status & USB_INTS_BUFF_STATUS_BITS) {
@@ -139,7 +139,7 @@ void isr_usbctrl(void) {
                 usb_hw_clear->buf_status = bit;
                 buffs ^= bit;
                 // Call internal handler
-                auto ep = usb_dcd_rp2040::inst()._endpoints[i>>1][!(i&1)];
+                auto ep = usb_dcd::inst()._endpoints[i>>1][!(i&1)];
                 if (ep) ep->_process_buffer();
             }
             bit <<= 1;

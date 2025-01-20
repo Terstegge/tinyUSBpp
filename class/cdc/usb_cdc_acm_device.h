@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class implements a CDC ACM device, which will be
 // recognized as a serial port (COM[x]: on Windows,
@@ -58,15 +58,18 @@ public:
     uint32_t write(const uint8_t *buf, uint32_t len);
 
     // Send a serial state notification to this device.
-    bool notify_serial_state(const USB::CDC::bmUartState_t & state);
+    bool notify_serial_state(const TUPP::CDC::bmUartState_t & state);
 
     // Callback handlers
     std::function<void(const CDC::line_coding_t & lc)>  line_coding_handler;
     std::function<void(bool dtr, bool rts)>             control_line_handler;
     std::function<void(uint16_t millis)>                break_handler;
 
-    // Read only version of line coding information
+    // Read-only version of line coding information
     const CDC::line_coding_t & line_coding;
+
+    // Convert line coding into a readable string
+    char * line_coding_2_str();
 
 private:
     // CDC ACM descriptor tree
@@ -86,8 +89,9 @@ private:
 
     // Line coding information
     CDC::line_coding_t          _line_coding;
+    char                        _line_coding_str[20];
 
-    // Fifos for received data and data to be transmitted.
+    // FIFOs for received data and data to be transmitted.
     fifo<uint8_t, TUPP_CDC_ACM_FIFO_SIZE> _received_data;
     fifo<uint8_t, TUPP_CDC_ACM_FIFO_SIZE> _data_to_transmit;
 
@@ -97,3 +101,4 @@ private:
 };
 
 #endif  // TUPP_USB_CDC_ACM_DEVICE_H
+

@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_interface.h"
 #include "usb_interface_association.h"
@@ -18,8 +18,9 @@
 #include "usb_strings.h"
 #include "usb_fd_base.h"
 #include <cassert>
+#include <cstring>
 
-using namespace USB;
+using namespace TUPP;
 
 usb_interface::usb_interface(usb_configuration & conf)
 :  descriptor(_descriptor), _parent(conf), _descriptor{},
@@ -108,3 +109,36 @@ void usb_interface::activate_endpoints(bool b) {
     }
 }
 
+uint16_t usb_interface::prepare_descriptor(uint8_t * buffer, uint16_t size) {
+    uint8_t * tmp_ptr = buffer;
+    // Process interface association
+    if (_assoc_ptr) {
+        memcpy(tmp_ptr, &_assoc_ptr->descriptor, sizeof(interface_association_descriptor_t));
+        tmp_ptr += sizeof(interface_association_descriptor_t);
+        assert((tmp_ptr-buffer) <= size);
+    }
+    // Process interface descriptor
+    memcpy(tmp_ptr, &_descriptor, sizeof(interface_descriptor_t));
+    tmp_ptr += sizeof(interface_descriptor_t);
+    assert((tmp_ptr-buffer) <= size);
+    // Process functional descriptors
+    if (_fd_ptr) {
+        // Process Functional Descriptors
+        usb_fd_base * fd_ptr = _fd_ptr;
+        while(fd_ptr) {
+            memcpy(tmp_ptr, fd_ptr->descriptor, fd_ptr->descriptor_length);
+            tmp_ptr += fd_ptr->descriptor_length;
+            assert((tmp_ptr-buffer) <= size);
+            fd_ptr = fd_ptr->next;
+        }
+    }
+    // Process all endpoint descriptors
+    for (auto ep : _endpoints) {
+        if (ep) {
+            memcpy(tmp_ptr, &ep->descriptor, sizeof(endpoint_descriptor_t));
+            tmp_ptr += sizeof(endpoint_descriptor_t);
+            assert((tmp_ptr-buffer) <= size);
+        }
+    }
+    return tmp_ptr - buffer;
+}

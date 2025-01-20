@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class represents a USB configuration
 //
@@ -38,7 +38,7 @@ public:
     inline void set_bConfigurationValue(uint8_t n) {
         _descriptor.bConfigurationValue = n;
     }
-    inline void set_bmAttributes(USB::conf_attr_t n) {
+    inline void set_bmAttributes(TUPP::conf_attr_t n) {
         _descriptor.bmAttributes = n;
     }
     inline void set_bMaxPower_mA(uint8_t n) {
@@ -51,7 +51,7 @@ public:
     void set_total_length();
 
     // Read-only version of our descriptor
-    const USB::configuration_descriptor_t & descriptor;
+    const TUPP::configuration_descriptor_t & descriptor;
 
     // Read-only version of our interfaces
     const std::array<usb_interface *, TUPP_MAX_INTERF_PER_CONF> & interfaces;
@@ -68,7 +68,7 @@ public:
 
 private:
     // The configuration descriptor
-    USB::configuration_descriptor_t _descriptor;
+    TUPP::configuration_descriptor_t _descriptor;
 
     // Array of pointers to our interfaces
     std::array<usb_interface *, TUPP_MAX_INTERF_PER_CONF> _interfaces;
@@ -78,3 +78,4 @@ private:
 };
 
 #endif  // TUPP_USB_CONFIGURATION_H
+

@@ -1,4 +1,4 @@
-target_sources(${PROJECT_NAME} PRIVATE
+target_sources(tinyUSB++ INTERFACE
     usb_ms_compatible_ID.cpp
     usb_ms_config_subset.cpp
     usb_ms_func_subset.cpp
@@ -7,7 +7,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     usb_ms_compat_descriptor.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(tinyUSB++ INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

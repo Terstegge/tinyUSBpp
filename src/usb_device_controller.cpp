@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class is the central USB device controller. Its main
 // job is to set up EP0, and listen to USB request. The standard
@@ -33,12 +33,12 @@
 #include <cstring>
 #include <cassert>
 
-using namespace USB;
-using enum USB::bRequest_t;
-using enum USB::bDescriptorType_t;
-using enum USB::recipient_t;
-using enum USB::ep_attributes_t;
-using enum USB::direction_t;
+using namespace TUPP;
+using enum TUPP::bRequest_t;
+using enum TUPP::bDescriptorType_t;
+using enum TUPP::recipient_t;
+using enum TUPP::ep_attributes_t;
+using enum TUPP::direction_t;
 
 usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_device & device)
     : active_configuration(_active_configuration), _ep0_in(nullptr), _ep0_out(nullptr),
@@ -85,7 +85,7 @@ usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_dev
     };
 
     // Handler for setup requests
-    _driver.setup_handler = [&](USB::setup_packet_t *pkt) {
+    _driver.setup_handler = [&](TUPP::setup_packet_t *pkt) {
         TUPP_LOG(LOG_DEBUG, "setup_handler()");
         // Reset EP0
         _ep0_in->reset();
@@ -188,7 +188,7 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
     assert(pkt->recipient == REC_DEVICE);
     // Extract type and index
     uint8_t desc_index = pkt->wValue & 0xff;
-    auto desc_type = (USB::bDescriptorType_t)(pkt->wValue >> 8);
+    auto desc_type = (TUPP::bDescriptorType_t)(pkt->wValue >> 8);
     // Initialize data pointer
     uint8_t * tmp_ptr = _buf;
     switch (desc_type) {
@@ -196,7 +196,8 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
             TUPP_LOG(LOG_INFO, "Get device descriptor (len=%d)",
                      pkt->wLength);
             assert(_device.descriptor.bLength <= pkt->wLength);
-            _ep0_in->start_transfer((uint8_t *) &_device.descriptor, _device.descriptor.bLength);
+            _ep0_in->start_transfer((uint8_t *) &_device.descriptor,
+                                    _device.descriptor.bLength);
             break;
         }
         case DESC_CONFIGURATION: {
@@ -213,38 +214,19 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
                     // Copy interface and endpoint descriptors
                     for (auto interface : conf->interfaces) {
                         if (interface) {
-                            // Process interface association
-                            if (interface->_assoc_ptr) {
-                                memcpy(tmp_ptr, &interface->_assoc_ptr->descriptor, sizeof(interface_association_descriptor_t));
-                                tmp_ptr += sizeof(interface_association_descriptor_t);
-                            }
-                            // Process interface descriptor
-                            memcpy(tmp_ptr, &interface->descriptor, sizeof(interface_descriptor_t));
-                            tmp_ptr += sizeof(interface_descriptor_t);
-                            // Process functional descriptors
-                            if (interface->_fd_ptr) {
-                                // Process Functional Descriptors
-                                usb_fd_base * fd_ptr = interface->_fd_ptr;
-                                while(fd_ptr) {
-                                    memcpy(tmp_ptr, fd_ptr->descriptor, fd_ptr->descriptor_length);
-                                    tmp_ptr += fd_ptr->descriptor_length;
-                                    fd_ptr = fd_ptr->next;
-                                }
-                            }
-                            // Process all endpoint descriptors
-                            for (auto ep : interface->_endpoints) {
-                                if (ep) {
-                                    memcpy(tmp_ptr, &ep->descriptor, sizeof(endpoint_descriptor_t));
-                                    tmp_ptr += sizeof(endpoint_descriptor_t);
-                                }
-                            }
+                            tmp_ptr += interface->prepare_descriptor(
+                                tmp_ptr, TUPP_MAX_DESC_SIZE - (tmp_ptr-_buf));
                         }
                     }
                 }
-            }
-            uint32_t len = (uint32_t)tmp_ptr - (uint32_t)_buf;
+                uint16_t len = tmp_ptr - _buf;
             assert(len <= pkt->wLength);
             _ep0_in->start_transfer(_buf, len);
+            } else {
+                // No configuration, stall the EP0
+                _ep0_in->send_stall(true);
+                _ep0_out->send_stall(true);
+            }
             break;
         }
         case DESC_STRING: {
@@ -273,23 +255,15 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
             TUPP_LOG(LOG_INFO, "Get BOS descriptor (len=%d)", pkt->wLength);
             if (_device.bos) {
                 // We have a BOS descriptor
-                tmp_ptr = _buf;
-                assert(sizeof(USB::bos_descriptor_t) <= TUPP_MAX_DESC_SIZE);
-                memcpy(tmp_ptr, &_device.bos->descriptor, sizeof(USB::bos_descriptor_t));
-                tmp_ptr += sizeof(USB::bos_descriptor_t);
-                for (int i=0; i < _device.bos->descriptor.bNumDeviceCaps; ++i) {
-                    uint16_t cap_len = _device.bos->_capabilities[i]->get_bLength();
-                    assert((tmp_ptr - _buf + cap_len) <= TUPP_MAX_DESC_SIZE);
-                    memcpy(tmp_ptr, _device.bos->_capabilities[i]->get_desc_ptr(), cap_len);
-                    tmp_ptr += cap_len;
-                }
+                tmp_ptr += _device.bos->prepare_descriptor(
+                        tmp_ptr, TUPP_MAX_DESC_SIZE - (tmp_ptr-_buf));
                 uint16_t len = tmp_ptr - _buf;
                 if (pkt->wLength < len) len = pkt->wLength;
                 _ep0_in->start_transfer(_buf, len);
             } else {
                 // No BOS, so stall the EP0
-//                _ep0_in->send_stall(true);
-//                _ep0_out->send_stall(true);
+                _ep0_in->send_stall(true);
+                _ep0_out->send_stall(true);
             }
             break;
         }
@@ -301,7 +275,7 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
             break;
         }
         default:
-            TUPP_LOG(LOG_WARNING, "Unknown descriptor type %d", desc_type);
+            TUPP_LOG(LOG_WARNING, "Unsupported descriptor type %d", desc_type);
             // Don't know what to report, so stall EP0
             _ep0_in->send_stall(true);
             _ep0_out->send_stall(true);
@@ -381,7 +355,7 @@ void usb_device_controller::handle_set_interface(setup_packet_t *pkt) {
     if (_active_configuration) {
         auto interface = _device.configurations[_active_configuration]->interfaces[index];
         if (interface) {
-            interface->_descriptor.bAlternateSetting = pkt->wValue & 0xff;
+            interface->set_bAlternateSetting(pkt->wValue & 0xff);
         }
     }
     // Status stage

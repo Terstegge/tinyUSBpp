@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #ifndef TUPP_USB_DEVICE_H
 #define TUPP_USB_DEVICE_H
@@ -33,7 +33,7 @@ public:
     inline void set_bcdUSB(uint16_t n) {
         _descriptor.bcdUSB = n;
     }
-    inline void set_bDeviceClass(USB::bDeviceClass_t n) {
+    inline void set_bDeviceClass(TUPP::bDeviceClass_t n) {
         _descriptor.bDeviceClass = n;
     }
     inline void set_bDeviceSubClass(uint8_t n) {
@@ -69,7 +69,7 @@ public:
     usb_configuration * find_configuration(uint8_t i);
 
     // Read-only version of our descriptor
-    const USB::device_descriptor_t & descriptor;
+    const TUPP::device_descriptor_t & descriptor;
 
     // Read-only version of our configurations
     const std::array<usb_configuration *, TUPP_MAX_CONF_PER_DEVICE> & configurations;
@@ -80,11 +80,11 @@ public:
     // The setup message handler which handles all
     // non-standard commands directed to this device.
     // Will be called by the usb_device_controller.
-    std::function<void(USB::setup_packet_t * packet)> setup_handler;
+    std::function<void(TUPP::setup_packet_t * packet)> setup_handler;
 
 private:
     // The device descriptor
-    USB::device_descriptor_t _descriptor;
+    TUPP::device_descriptor_t _descriptor;
 
     // Array of pointers to our configurations
     std::array<usb_configuration *, TUPP_MAX_CONF_PER_DEVICE> _configurations;

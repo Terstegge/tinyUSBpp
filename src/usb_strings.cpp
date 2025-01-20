@@ -9,14 +9,14 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_strings.h"
 #include "usb_structs.h"
 #include "usb_log.h"
 #include <cassert>
 #include <cstring>
-using namespace USB;
+using namespace TUPP;
 
 // The static singleton instance
 usb_strings usb_strings::inst;

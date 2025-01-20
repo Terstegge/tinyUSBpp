@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #ifndef _TUPP_USB_CONFIG_H
 #define _TUPP_USB_CONFIG_H
@@ -71,7 +71,7 @@
 #define TUPP_MAX_MS_CONFIG_SUBSETS 1
 #endif
 
-// Default number of MS config subsets
+// Default number of MS functional subsets
 #ifndef TUPP_MAX_MS_FUNC_SUBSETS
 #define TUPP_MAX_MS_FUNC_SUBSETS 1
 #endif
@@ -89,6 +89,15 @@
 // Default block size for MSC devices
 #ifndef TUPP_MSC_BLOCK_SIZE
 #define TUPP_MSC_BLOCK_SIZE 512
+#endif
+
+// Use a byte-wise memcpy function for copying
+// data to/from the USB HW buffers. This is
+// needed by some platforms (e.g. RP2350), because
+// unaligned word/half-word accesses to the USB RAM
+// result in a hard fault...
+#ifndef TUPP_USE_BYTEWISE_MEMCPY
+#define TUPP_USE_BYTEWISE_MEMCPY 0
 #endif
 
 #endif // _TUPP_USB_CONFIG_H

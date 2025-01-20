@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This is a simple logging class to be used within tinyUSB++.
 // The user interface are the two macros defined below:
@@ -17,8 +17,8 @@
 //   TUPP_LOG(...)  to print a logging message on stdout, and
 //   TUPP_LOG_LEVEL(l) to set the logging level (see below).
 //
-#ifndef TUPP_LOG_H
-#define TUPP_LOG_H
+#ifndef TUPP_USB_LOG_H
+#define TUPP_USB_LOG_H
 
 enum log_level { LOG_OFF=0, LOG_ERROR=1, LOG_WARNING=2, LOG_INFO=3, LOG_DEBUG=4 };
 
@@ -55,4 +55,4 @@ private:
     const char * _level_str[5] = {"[OFF] ", "[ERR] ", "[WAR] ", "[INF] ", "[DBG] "};
 };
 
-#endif // TUPP_LOG_H
+#endif // TUPP_USB_LOG_H

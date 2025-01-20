@@ -11,7 +11,7 @@
 // use library for USB host/device functionality.
 // (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#include "usb_dcd_rp2040.h"
+#include "usb_dcd.h"
 #include "usb_endpoint_rp2040.h"
 #include "usb_log.h"
 #include <cstring>
@@ -20,7 +20,7 @@
 using namespace _USBCTRL_REGS_;
 using namespace _RESETS_;
 
-usb_dcd_rp2040::usb_dcd_rp2040()
+usb_dcd::usb_dcd()
 : _endpoints({nullptr},{nullptr}),
   _new_addr(0), _should_set_address(false)
 {
@@ -60,11 +60,11 @@ usb_dcd_rp2040::usb_dcd_rp2040()
     NVIC_EnableIRQ(USBCTRL_IRQ_IRQn);
 }
 
-void usb_dcd_rp2040::pullup_enable(bool e) {
+void usb_dcd::pullup_enable(bool e) {
     USBCTRL_REGS_SET.SIE_CTRL.PULLUP_EN <<= e;
 }
 
-void usb_dcd_rp2040::irq_enable(bool e) {
+void usb_dcd::irq_enable(bool e) {
     if (e) {
         NVIC_EnableIRQ(USBCTRL_IRQ_IRQn);
     } else {
@@ -72,26 +72,26 @@ void usb_dcd_rp2040::irq_enable(bool e) {
     }
 }
 
-void usb_dcd_rp2040::set_address(uint8_t addr) {
+void usb_dcd::set_address(uint8_t addr) {
     _new_addr = addr;
     TUPP_LOG(LOG_INFO, "Set USB address %d", _new_addr);
     _should_set_address = true;
 }
 
-void usb_dcd_rp2040::check_address() {
+void usb_dcd::check_address() {
     if (_should_set_address) {
         USBCTRL_REGS.ADDR_ENDP.ADDRESS = _new_addr;
         _should_set_address = false;
     }
 }
 
-void usb_dcd_rp2040::reset_address() {
+void usb_dcd::reset_address() {
     _new_addr = 0;
     _should_set_address = false;
     USBCTRL_REGS.ADDR_ENDP.ADDRESS = 0;
 }
 
-usb_endpoint * usb_dcd_rp2040::create_endpoint(
+usb_endpoint * usb_dcd::create_endpoint(
         uint8_t addr,
         ep_attributes_t type,
         uint16_t packet_size,
@@ -100,7 +100,7 @@ usb_endpoint * usb_dcd_rp2040::create_endpoint(
     return new usb_endpoint_rp2040(addr, type, packet_size, interval, interface);
 }
 
-usb_endpoint * usb_dcd_rp2040::create_endpoint(
+usb_endpoint * usb_dcd::create_endpoint(
         direction_t     direction,
         ep_attributes_t type,
         uint16_t        packet_size,
@@ -122,12 +122,12 @@ void USBCTRL_IRQ_Handler(void) {
     // Setup packet received
     if (USBCTRL_REGS.INTS.SETUP_REQ) {
         USBCTRL_REGS_CLR.SIE_STATUS.SETUP_REC = 1;
-        usb_dcd_rp2040::inst().setup_handler((USB::setup_packet_t *)&USBCTRL_DPRAM);
+        usb_dcd::inst().setup_handler((USB::setup_packet_t *)&USBCTRL_DPRAM);
     }
     // Bus is reset
     if (USBCTRL_REGS.INTS.BUS_RESET) {
         USBCTRL_REGS_CLR.SIE_STATUS.BUS_RESET = 1;
-        usb_dcd_rp2040::inst().bus_reset_handler();
+        usb_dcd::inst().bus_reset_handler();
     }
     // Buffer status, one or more buffers have completed
     if (USBCTRL_REGS.INTS.BUFF_STATUS) {
@@ -139,7 +139,7 @@ void USBCTRL_IRQ_Handler(void) {
                 USBCTRL_REGS_CLR.BUFF_STATUS = bit;
                 buffs ^= bit;
                 // Call internal handler
-                auto ep = usb_dcd_rp2040::inst()._endpoints[i>>1][!(i&1)];
+                auto ep = usb_dcd::inst()._endpoints[i>>1][!(i&1)];
                 if (ep) ep->_process_buffer();
             }
             bit <<= 1;

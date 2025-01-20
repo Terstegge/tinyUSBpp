@@ -9,10 +9,10 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#ifndef TUPP_SCSI_COMMON_H
-#define TUPP_SCSI_COMMON_H
+#ifndef TUPP_SCSI_STRUCTS_H
+#define TUPP_SCSI_STRUCTS_H
 
 #include <cstdint>
 
@@ -272,4 +272,5 @@ namespace SCSI {
 
 }   // namespace SCSI
 
-#endif  // TUPP_SCSI_COMMON_H
+#endif  // TUPP_SCSI_STRUCTS_H
+

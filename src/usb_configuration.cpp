@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_device.h"
 #include "usb_configuration.h"
@@ -18,7 +18,7 @@
 #include "usb_strings.h"
 #include <cassert>
 
-using namespace USB;
+using namespace TUPP;
 
 usb_configuration::usb_configuration(usb_device & device)
 : descriptor(_descriptor), interfaces(_interfaces),

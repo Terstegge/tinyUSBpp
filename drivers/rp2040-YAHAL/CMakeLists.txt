@@ -1,5 +1,5 @@
 target_sources(${PROJECT_NAME} PRIVATE
-    usb_dcd_rp2040.cpp
+    usb_dcd.cpp
     usb_endpoint_rp2040.cpp
 )
 

@@ -9,10 +9,10 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#ifndef _USB_DCD_INTERFACE_H
-#define _USB_DCD_INTERFACE_H
+#ifndef TUPP_USB_DCD_INTERFACE_H
+#define TUPP_USB_DCD_INTERFACE_H
 
 #include <functional>
 using std::function;
@@ -23,7 +23,7 @@ using std::function;
 class usb_endpoint;
 class usb_interface;
 
-using namespace USB;
+using namespace TUPP;
 
 class usb_dcd_interface {
 public:
@@ -39,7 +39,7 @@ public:
     virtual void reset_address() = 0;
 
     // Set handler for setup packets
-    function<void(USB::setup_packet_t * packet)> setup_handler;
+    function<void(TUPP::setup_packet_t * packet)> setup_handler;
 
     // Set handler for bus reset
     function<void()> bus_reset_handler;
@@ -67,4 +67,4 @@ protected:
     virtual ~usb_dcd_interface() = default;
 };
 
-#endif // _USB_DCD_INTERFACE_H
+#endif // TUPP_USB_DCD_INTERFACE_H

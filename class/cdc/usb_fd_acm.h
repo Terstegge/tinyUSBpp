@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class represents a acm functional descriptor
 //
@@ -28,13 +28,14 @@ public:
     usb_fd_acm (const usb_fd_acm &) = delete;
     usb_fd_acm & operator= (const usb_fd_acm &) = delete;
 
-    inline void set_bmCapabilities(USB::CDC::bmAcmCapabilities_t val) {
+    inline void set_bmCapabilities(TUPP::CDC::bmAcmCapabilities_t val) {
         TUPP_LOG(LOG_DEBUG, "set_bmCapabilities(0x%x)", val);
         _descriptor.bmCapabilities = val;
     }
 
 private:
-    USB::CDC::func_desc_acm_t _descriptor {};
+    TUPP::CDC::func_desc_acm_t _descriptor {};
 };
 
 #endif // TUPP_USB_FD_ACM_H
+

@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #ifndef TUPP_USB_INTERFACE_H
 #define TUPP_USB_INTERFACE_H
@@ -50,15 +50,15 @@ public:
         TUPP_LOG(LOG_DEBUG, "set_bAlternateSetting(%d)", n);
         _descriptor.bAlternateSetting = n;
     }
-    inline void set_bInterfaceClass(USB::bInterfaceClass_t n) {
+    inline void set_bInterfaceClass(TUPP::bInterfaceClass_t n) {
         TUPP_LOG(LOG_DEBUG, "set_bInterfaceClass(%d)", n);
         _descriptor.bInterfaceClass = n;
     }
-    inline void set_bInterfaceSubClass(USB::bInterfaceSubClass_t n) {
+    inline void set_bInterfaceSubClass(TUPP::bInterfaceSubClass_t n) {
         TUPP_LOG(LOG_DEBUG, "set_bInterfaceSubClass(%d)", n);
         _descriptor.bInterfaceSubClass = n;
     }
-    inline void set_bInterfaceProtocol(USB::bInterfaceProtocol_t n) {
+    inline void set_bInterfaceProtocol(TUPP::bInterfaceProtocol_t n) {
         TUPP_LOG(LOG_DEBUG, "set_bInterfaceProtocol(%d)", n);
         _descriptor.bInterfaceProtocol = n;
     }
@@ -78,19 +78,23 @@ public:
     void activate_endpoints(bool b);
 
     // Read-only version of our descriptor
-    const USB::interface_descriptor_t & descriptor;
+    const TUPP::interface_descriptor_t & descriptor;
+
+    // Prepare the complete configuration descriptor in a given
+    // buffer with given size. Return the size of the descriptor.
+    uint16_t prepare_descriptor(uint8_t * buffer, uint16_t size);
 
     // The setup message handler which handles all
     // commands directed to this interface. Will be
     // called by the usb_device_controller.
-    std::function<void(USB::setup_packet_t * packet)> setup_handler;
+    std::function<void(TUPP::setup_packet_t * packet)> setup_handler;
 
 private:
     // Reference to parent configuration object
     usb_configuration & _parent;
 
     // The interface descriptor
-    USB::interface_descriptor_t _descriptor;
+    TUPP::interface_descriptor_t _descriptor;
 
     // Pointer to an interface association which
     // this interface belongs to. Only the first
@@ -108,3 +112,4 @@ private:
 };
 
 #endif  // TUPP_USB_INTERFACE_H
+

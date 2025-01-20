@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #ifndef TUPP_USB_MS_REGISTRY_PROPERTY_H
 #define TUPP_USB_MS_REGISTRY_PROPERTY_H
@@ -29,8 +29,8 @@ public:
     usb_ms_registry_property(const usb_ms_registry_property &) = delete;
     usb_ms_registry_property & operator= (const usb_ms_registry_property &) = delete;
 
-    inline USB::ms_reg_prop_header_t * descriptor() {
-        return (USB::ms_reg_prop_header_t *)_desc_buffer;
+    inline TUPP::ms_reg_prop_header_t * descriptor() {
+        return (TUPP::ms_reg_prop_header_t *)_desc_buffer;
     }
 
     void add_property_name (const char * name);
@@ -52,3 +52,4 @@ private:
 };
 
 #endif  // TUPP_USB_MS_REGISTRY_PROPERTY_H
+

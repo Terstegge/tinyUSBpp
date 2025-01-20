@@ -1,11 +1,17 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(tinyUSB++_${PROJECT_NAME})
+add_library(tinyUSB++ INTERFACE)
 
-set(CMAKE_CXX_STANDARD 20)
-add_compile_options(-Ofast)
+# tinyUSB++ uses some C++20 features, and we want
+# the code to run as fast as possible :)
+target_compile_options(tinyUSB++ INTERFACE -Ofast)
+set_property(TARGET tinyUSB++ PROPERTY CXX_STANDARD 20)
 
-add_library(${PROJECT_NAME})
+# Check for platform-specific needs.
+# RP2350 generates a hard fault after an unaligned access to USB RAM
+if (PICO_RP2350 OR RP2350)
+    target_compile_definitions(tinyUSB++ INTERFACE TUPP_USE_BYTEWISE_MEMCPY=1)
+endif ()
 
 add_subdirectory(class)
 add_subdirectory(drivers)

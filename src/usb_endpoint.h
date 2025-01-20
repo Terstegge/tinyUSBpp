@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class is the virtual base class for a concrete
 // endpoint implementation. The virtual methods will have
@@ -35,7 +35,7 @@ public:
     inline void set_bEndpointAddress(uint8_t n) {
         _descriptor.bEndpointAddress = n;
     }
-    inline void set_bmAttributes(USB::ep_attributes_t n) {
+    inline void set_bmAttributes(TUPP::ep_attributes_t n) {
         _descriptor.bmAttributes = n;
     }
     inline void set_wMaxPacketSize(uint16_t n) {
@@ -60,7 +60,7 @@ public:
     }
 
     // Read-only version of our descriptor
-    const USB::endpoint_descriptor_t & descriptor;
+    const TUPP::endpoint_descriptor_t & descriptor;
 
     // The data handler which is called when a transaction
     // to/from the host has finished.
@@ -69,7 +69,7 @@ public:
     // The setup message handler which handles all
     // commands directed to this endpoint. Will be
     // called by the usb_device_controller.
-    std::function<void(USB::setup_packet_t * packet)> setup_handler;
+    std::function<void(TUPP::setup_packet_t * packet)> setup_handler;
 
     // Reset this endpoint to its default state
     // (no stall, no NAK, not active, next PID = 1)
@@ -94,7 +94,7 @@ protected:
     // derived implementations of this class
     usb_endpoint(
             uint8_t  addr,
-            USB::ep_attributes_t  transfer_type,
+            TUPP::ep_attributes_t  transfer_type,
             uint16_t packet_size = TUPP_DEFAULT_PAKET_SIZE,
             uint8_t  interval    = TUPP_DEFAULT_POLL_INTERVAL,
             usb_interface * interface = nullptr);
@@ -120,7 +120,8 @@ protected:
 
 private:
     // The endpoint descriptor
-    USB::endpoint_descriptor_t _descriptor {};
+    TUPP::endpoint_descriptor_t _descriptor {};
 };
 
 #endif // TUPP_USB_ENDPOINT_H
+

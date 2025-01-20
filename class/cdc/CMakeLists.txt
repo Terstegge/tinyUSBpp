@@ -1,4 +1,4 @@
-target_sources(${PROJECT_NAME} PRIVATE
+target_sources(tinyUSB++ INTERFACE
     usb_cdc_acm_device.cpp
     usb_fd_acm.cpp
     usb_fd_call_mgmt.cpp
@@ -6,6 +6,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     usb_fd_union.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(tinyUSB++ INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )

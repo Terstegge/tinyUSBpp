@@ -1,19 +1,24 @@
 # tinyUSB++
 Small and easy to use USB library written in C++
 
-As the name implies, tinyUSB++ is closely related to the TinyUSB
-project. Just like TinyUSB, tinyUSB++ tries to be an open-source cross-platform
-USB Host/Device stack for embedded system, designed to be memory-safe
-with no dynamic allocation.
+tinyUSB++ was inspired by the famous tinyusb library, but tries do
+do a couple of things better. Just like tinyusb, tinyUSB++ is an
+open-source cross-platform USB Host/Device stack for embedded system,
+designed to be memory-safe (with no dynamic allocation) and performant.
 
 Still there are some relevant differences:
 
 * tinyUSB++ is written in C++, which offers more powerfull
   programming paradigms (inheritance, virtual methods, lambdas, ...).
   The source structure consists of several smaller classes, each implementing
-  a specific part of the USB descriptors or USB functionality.
+  a specific part of the USB descriptor tree or USB functionality.
 
-* tinyUSB++ does not include an additional layer like TinyUSB, where
+* tinyUSB++ does not include drivers for LEDs or any other kind of OS
+  integration. Instead, tinyUSB++ focuses on the USB functionality
+  and leaves the decision how to integrate it into a (multitasking)
+  RTOS to the user.
+
+* tinyUSB++ does not include an additional layer like tinyusb, where
   all interrupt events are defered to a central queue, which is then
   handled by a non-IRQ task function. tinyUSB++ uses different strategies
   depending on the concrete driver class. A CDC device for example will
@@ -41,10 +46,10 @@ straightforward:
   working directory to it.
 * Set your PICO_SDK_PATH or uncomment and change the related line in the
   CMakeLists.txt
-* Call 'cmake ..' and 'make'
+* Run 'cmake ..' and 'make'
 * Copy the generated UF2 file to the RPi Pico - thats it!
 
-Please report if you encounter any problems using the examples!
+Please report any problems!
 
 ## TODOs
 

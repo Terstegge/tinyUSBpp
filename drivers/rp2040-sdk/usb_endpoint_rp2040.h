@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // Implementation of the USB endpoint class for
 // the RP2040 using the pico-sdk
@@ -28,7 +28,7 @@ void isr_irq5(void);
 
 class usb_endpoint_rp2040 : public usb_endpoint {
 public:
-    friend class usb_dcd_rp2040;
+    friend class usb_dcd;
     friend void isr_irq5(void);
 
     void enable_endpoint(bool b) override;
@@ -39,7 +39,7 @@ public:
 
 private:
     usb_endpoint_rp2040(uint8_t  addr,
-                        USB::ep_attributes_t  type,
+                        TUPP::ep_attributes_t  type,
                         uint16_t packet_size = 64,
                         uint8_t  interval    = 0,
                         usb_interface * interface = nullptr);

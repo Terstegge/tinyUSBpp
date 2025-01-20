@@ -30,7 +30,7 @@ void USBCTRL_IRQ_Handler(void);
 
 class usb_endpoint_rp2040 : public usb_endpoint {
 public:
-    friend class usb_dcd_rp2040;
+    friend class usb_dcd;
     friend void USBCTRL_IRQ_Handler(void);
 
     void enable_endpoint(bool b) override;

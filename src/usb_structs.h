@@ -9,17 +9,17 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#ifndef TUPP_USB_COMMON_H
-#define TUPP_USB_COMMON_H
+#ifndef TUPP_USB_STRUCTS_H
+#define TUPP_USB_STRUCTS_H
 
 #include "usb_cdc_defines.h"
 #include "usb_msc_defines.h"
 
 #include <cstdint>
 
-namespace USB {
+namespace TUPP {
 
     ///////////////
     // Setup packet
@@ -110,7 +110,7 @@ namespace USB {
         uint8_t             iSerialNumber;
         uint8_t             bNumConfigurations;
     };
-    static_assert(sizeof(USB::device_descriptor_t) == 18);
+    static_assert(sizeof(TUPP::device_descriptor_t) == 18);
 
     ///////////////////////////////
     // USB Configuration Descriptor
@@ -212,9 +212,9 @@ namespace USB {
     };
     static_assert(sizeof(endpoint_descriptor_t) == 7);
 
-    /////////////////////
-    // BOS descriptors //
-    /////////////////////
+    ////////////////////
+    // BOS descriptor //
+    ////////////////////
 
     struct __attribute__((__packed__)) bos_descriptor_t {
         uint8_t             bLength;
@@ -258,4 +258,5 @@ namespace USB {
     static_assert(sizeof(dev_cap_platform_t) == 20);
 };
 
-#endif // TUPP_USB_COMMON_H
+#endif // TUPP_USB_STRUCTS_H
+

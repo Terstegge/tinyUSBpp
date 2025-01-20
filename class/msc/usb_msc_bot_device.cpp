@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_msc_bot_device.h"
 #include "usb_structs.h"
@@ -18,12 +18,12 @@
 #include <cassert>
 #include <machine/endian.h>
 
-using namespace USB;
-using enum USB::bInterfaceClass_t;
-using enum USB::bInterfaceSubClass_t;
-using enum USB::bInterfaceProtocol_t;
-using enum USB::ep_attributes_t;
-using enum USB::direction_t;
+using namespace TUPP;
+using enum TUPP::bInterfaceClass_t;
+using enum TUPP::bInterfaceSubClass_t;
+using enum TUPP::bInterfaceProtocol_t;
+using enum TUPP::ep_attributes_t;
+using enum TUPP::direction_t;
 using enum SCSI::peripheral_device_type_t;
 using enum SCSI::peripheral_qualifier_type_t;
 
@@ -63,7 +63,7 @@ usb_msc_bot_device::usb_msc_bot_device(
     };
 
     // Handler for CDC ACM specific requests
-    _interface.setup_handler = [&](USB::setup_packet_t *pkt) {
+    _interface.setup_handler = [&](TUPP::setup_packet_t *pkt) {
         switch(pkt->bRequest) {
             case bRequest_t::REQ_MSC_BOT_RESET: {
                 TUPP_LOG(LOG_INFO, "REQ_MSC_BOT_RESET");

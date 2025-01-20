@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #ifndef TUPP_USB_MS_FUNC_SUBSET_H
 #define TUPP_USB_MS_FUNC_SUBSET_H
@@ -44,7 +44,7 @@ public:
     void inc_subset_length(uint16_t inc);
 
     // Read-only version of our descriptor
-    const USB::ms_func_subset_header_t & descriptor;
+    const TUPP::ms_func_subset_header_t & descriptor;
 
     // Array of pointers to our device capabilities
     usb_ms_compatible_ID *  _compat_id;
@@ -52,7 +52,7 @@ public:
 
 private:
     // The binary object store (BOS) descriptor
-    USB::ms_func_subset_header_t _descriptor;
+    TUPP::ms_func_subset_header_t _descriptor;
 
     // Parent
     usb_ms_config_subset & _config_subset;
@@ -61,3 +61,4 @@ private:
 };
 
 #endif  // TUPP_USB_MS_FUNC_SUBSET_H
+

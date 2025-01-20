@@ -9,28 +9,28 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#ifndef TUPP_USB_MS_COMMON_H
-#define TUPP_USB_MS_COMMON_H
+#ifndef TUPP_USB_MS_STRUCTS_H
+#define TUPP_USB_MS_STRUCTS_H
 
 #include "usb_structs.h"
 
-namespace USB {
+namespace TUPP {
 
     struct __attribute__((__packed__)) dev_cap_platform_ms_webusb_t : public dev_cap_platform_t {
-        uint16_t                bcdVersion;
-        bRequest_t              bVendorCode;
-        uint8_t                 iLandingPage;
+        uint16_t                bcdVersion {0};
+        bRequest_t              bVendorCode {0};
+        uint8_t                 iLandingPage {0};
     };
     static_assert(sizeof(dev_cap_platform_ms_webusb_t) == 24);
 
 
     struct __attribute__((__packed__)) dev_cap_platform_ms_os_20_t : public dev_cap_platform_t {
-        uint32_t                dwWindowsVersion;
-        uint16_t                wMSOSDescriptorSetTotalLength;
-        bRequest_t              bMS_VendorCode;
-        uint8_t                 bAltEnumCode;
+        uint32_t                dwWindowsVersion {0};
+        uint16_t                wMSOSDescriptorSetTotalLength {0};
+        bRequest_t              bMS_VendorCode {0};
+        uint8_t                 bAltEnumCode {0};
     };
     static_assert(sizeof(dev_cap_platform_ms_os_20_t) == 28);
 
@@ -43,36 +43,37 @@ namespace USB {
     };
 
     struct __attribute__((__packed__)) ms_descriptor_t {
-        uint16_t            wLength;
-        wDescriptorType_t   wDescriptorType;
+        uint16_t            wLength {0};
+        wDescriptorType_t   wDescriptorType {0};
     };
 
     struct __attribute__((__packed__)) ms_header_t : public ms_descriptor_t {
-        uint32_t            dwWindowsVersion;
-        uint16_t            wTotalLength;
+        uint32_t            dwWindowsVersion {0};
+        uint16_t            wTotalLength {0};
     };
 
     struct __attribute__((__packed__)) ms_config_subset_header_t : public ms_descriptor_t {
-        uint8_t             bConfigurationValue;
-        uint8_t             bReserved;
-        uint16_t            wTotalLength;
+        uint8_t             bConfigurationValue {0};
+        uint8_t             bReserved {0};
+        uint16_t            wTotalLength {0};
     };
 
     struct __attribute__((__packed__)) ms_func_subset_header_t : public ms_descriptor_t {
-        uint8_t             bFirstInterface;
-        uint8_t             bReserved;
-        uint16_t            wSubsetLength;
+        uint8_t             bFirstInterface {0};
+        uint8_t             bReserved {0};
+        uint16_t            wSubsetLength {0};
     };
 
     struct __attribute__((__packed__)) ms_compat_id_header_t : public ms_descriptor_t {
-        uint8_t             CompatibleID[8];
-        uint8_t             SubCompatibleID[8];
+        uint8_t             CompatibleID[8] {0};
+        uint8_t             SubCompatibleID[8] {0};
     };
 
     struct __attribute__((__packed__)) ms_reg_prop_header_t : public ms_descriptor_t {
-        uint16_t            wPropertyDataType;
+        uint16_t            wPropertyDataType {0};
     };
 
 };
 
-#endif // TUPP_USB_MS_COMMON_H
+#endif // TUPP_USB_MS_STRUCTS_H
+

@@ -9,32 +9,32 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // Implementation of the USB Device Controller Driver (DCD)
 // using the YAHAL OS.
 //
-#ifndef TUPP_USB_DCD_RP2040_H
-#define TUPP_USB_DCD_RP2040_H
+#ifndef TUPP_USB_DCD_H
+#define TUPP_USB_DCD_H
 
 #include "usb_dcd_interface.h"
-#include "usb_endpoint_rp2040.h"
+#include "usb_endpoint_rp2350.h"
 #include "usb_interface.h"
 
-#include "RP2040.h"
+#include "RP2350.h"
 
 extern "C" {
 void USBCTRL_IRQ_Handler(void);
 };
 
-class usb_dcd_rp2040 : public usb_dcd_interface {
+class usb_dcd : public usb_dcd_interface {
 public:
 
-    friend class usb_endpoint_rp2040;
+    friend class usb_endpoint_rp2350;
     friend void USBCTRL_IRQ_Handler(void);
 
-    static usb_dcd_rp2040 & inst() {
-        static usb_dcd_rp2040 _inst;
+    static usb_dcd & inst() {
+        static usb_dcd _inst;
         return _inst;
     }
 
@@ -67,13 +67,13 @@ public:
     }
 
 private:
-    usb_dcd_rp2040();
+    usb_dcd();
 
-    usb_endpoint_rp2040 * _endpoints[16][2];
+    usb_endpoint_rp2350 * _endpoints[16][2];
 
     uint8_t             _new_addr;
     bool                _should_set_address;
 
 };
 
-#endif // TUPP_USB_DCD_RP2040_H
+#endif // TUPP_USB_DCD_H

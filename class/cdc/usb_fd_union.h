@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class represents a union functional descriptor
 //
@@ -38,7 +38,8 @@ public:
     }
 
 private:
-    USB::CDC::func_desc_union_t<1> _descriptor {};
+    TUPP::CDC::func_desc_union_t<1> _descriptor {};
 };
 
 #endif  // TUPP_USB_FD_UNION_H
+

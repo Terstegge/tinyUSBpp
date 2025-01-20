@@ -11,7 +11,7 @@
 // use library for USB host/device functionality.
 // (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#include "usb_dcd_rp2040.h"
+#include "usb_dcd.h"
 #include "usb_endpoint_rp2040.h"
 #include "usb_log.h"
 #include <cassert>
@@ -71,13 +71,13 @@ usb_endpoint_rp2040::usb_endpoint_rp2040(uint8_t  addr,
     if (!is_IN()) _mask <<= 1;
 
     // Store this endpoint in lookup table
-    usb_dcd_rp2040::inst()._endpoints[addr & 0x0f][addr >> 7] = this;
+    usb_dcd::inst()._endpoints[addr & 0x0f][addr >> 7] = this;
 }
 
 void usb_endpoint_rp2040::_process_buffer() {
     // Dispatch request according endpoint direction
     if (is_IN()) {
-        usb_dcd_rp2040::inst().check_address();
+        usb_dcd::inst().check_address();
         handle_buffer_in(*_buff_ctrl & USB_BUF_CTRL_LEN_MASK);
     } else {
         handle_buffer_out(*_buff_ctrl & USB_BUF_CTRL_LEN_MASK);

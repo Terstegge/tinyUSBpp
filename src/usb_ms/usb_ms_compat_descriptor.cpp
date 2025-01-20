@@ -9,31 +9,31 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_ms_compat_descriptor.h"
 #include "usb_log.h"
 #include <cstring>
 
-#define GET_WEBUSB_DESC ((USB::bRequest_t)0x1)
-#define GET_WEBUSB_URL  ((USB::bRequest_t)0x2)
-#define URL_HTTP        "\x00"
-#define URL_HTTPS       "\x01"
-#define URL_FULL        "\xff"
+#define GET_WEBUSB_URL  ((TUPP::bRequest_t)0x1)
+#define GET_WEBUSB_DESC ((TUPP::bRequest_t)0x2)
 
 usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
-                                                   usb_device & dev)
+                                                   usb_device & dev,
+                                                   const char * URL)
 : _controller(ctrl), _device(dev), _bos(_device)
 {
-
+#if 0
 // {3408b638-09a9-47a0-8bfd-a0768815b665}
-//    uint8_t uuid1[16] = { 0x38, 0xB6, 0x08, 0x34, 0xA9, 0x09, 0xA0, 0x47,
-//                          0x8B, 0xFD, 0xA0, 0x76, 0x88, 0x15, 0xB6, 0x65 };
-//
-//    _web_platform.set_PlatformCapabilityUUID ( uuid1 );
-//    _web_platform.set_bcdVersion             ( 0x0100 );
-//    _web_platform.set_bVendorCode            ( GET_WEBUSB_URL );
-//    _web_platform.set_iLandingPage           ( URL_FULL "http://www.fh-aachen.de");
+    uint8_t uuid1[16] = { 0x38, 0xB6, 0x08, 0x34, 0xA9, 0x09, 0xA0, 0x47,
+                          0x8B, 0xFD, 0xA0, 0x76, 0x88, 0x15, 0xB6, 0x65 };
+     _web_platform.set_PlatformCapabilityUUID ( uuid1 );
+    _web_platform.set_bcdVersion             ( 0x0100 );
+    _web_platform.set_bVendorCode            ( GET_WEBUSB_URL );
+    if (URL) {
+        _web_platform.set_iLandingPage       ( URL );
+    }
+#endif
 
     // {d8dd60df-4589-4cc7-9cd2-659d9e648a9f}
     uint8_t uuid2[16] = { 0xDF, 0x60, 0xDD, 0xD8, 0x89, 0x45, 0xC7, 0x4C,
@@ -54,21 +54,27 @@ usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
     _ms_reg_prop.add_property_name           ( "DeviceInterfaceGUIDs\0" );
     _ms_reg_prop.add_property_value          ( "{CDB3B5AD-293B-4663-AA36-1AAE46463776}" );
 
-    _device.setup_handler = [&] (USB::setup_packet_t * pkt) {
+    _device.setup_handler = [&] (TUPP::setup_packet_t * pkt) {
         TUPP_LOG(LOG_DEBUG, "device setup_handler()");
-        if ( (pkt->bRequest == GET_WEBUSB_URL) &&
-             (pkt->wValue   == 1) && (pkt->wIndex == 2) ) {
-            TUPP_LOG(LOG_INFO, "Getting MS WebUSB URL");
-            uint8_t len = usb_strings::inst.prepare_string_desc_utf8(pkt->wValue, _buffer);
-            if (len > pkt->wLength) len = pkt->wLength;
-            _controller._ep0_in->start_transfer(_buffer, len);
+        if ( (pkt->bRequest == GET_WEBUSB_URL) && (pkt->wIndex == 2) ) {
+                TUPP_LOG(LOG_INFO, "Getting MS WebUSB URL");
+                // Make sure we have a landing page (string index > 0)!
+                if (pkt->wValue) {
+                uint8_t len = usb_strings::inst.prepare_string_desc_utf8(pkt->wValue, _buffer);
+                if (len > pkt->wLength) len = pkt->wLength;
+                _controller._ep0_in->start_transfer(_buffer, len);
+            } else {
+                _controller._ep0_in->send_stall(true);
+                _controller._ep0_out->send_stall(true);
+            }
         } else if ( (pkt->bRequest == GET_WEBUSB_DESC) &&
                     (pkt->wValue   == 0) && (pkt->wIndex == 7) ) {
             TUPP_LOG(LOG_INFO, "Getting MS WebUSB descriptor");
             uint16_t len = prepare_descriptor();
             _controller._ep0_in->start_transfer(_buffer, len);
         } else {
-            TUPP_LOG(LOG_ERROR, "Unknown device request 0x%x", pkt->bRequest);
+            TUPP_LOG(LOG_ERROR, "Unknown device request %d %d %d",
+                     pkt->bRequest, pkt->wValue, pkt->wIndex);
             _controller._ep0_in->send_stall(true);
             _controller._ep0_out->send_stall(true);
         }

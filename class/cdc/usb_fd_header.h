@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class represents a header functional descriptor
 //
@@ -34,7 +34,8 @@ public:
     }
 
 private:
-    USB::CDC::func_desc_header_t _descriptor {};
+    TUPP::CDC::func_desc_header_t _descriptor {};
 };
 
 #endif  // TUPP_USB_FD_HEADER_H
+

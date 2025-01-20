@@ -9,14 +9,14 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #ifndef TUPP_USB_MSC_COMMON_H
 #define TUPP_USB_MSC_COMMON_H
 
 #include "usb_structs.h"
 
-namespace USB::MSC {
+namespace TUPP::MSC {
 
     ///////////////////////////
     // Command Block Wrapper //

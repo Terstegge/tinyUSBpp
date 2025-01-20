@@ -1,4 +1,4 @@
-target_sources(${PROJECT_NAME} PRIVATE
+target_sources(tinyUSB++ INTERFACE
     usb_bos.cpp
     usb_configuration.cpp
     usb_device.cpp
@@ -12,6 +12,6 @@ target_sources(${PROJECT_NAME} PRIVATE
 
 add_subdirectory(usb_ms)
 
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(tinyUSB++ INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )

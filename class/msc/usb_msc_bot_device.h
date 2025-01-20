@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class represents a MSC (Mass Storage Class) BOT (Bulk Only Tramsfer)
 // device. The user interface are 4 handler functions (see below).
@@ -120,3 +120,4 @@ private:
 };
 
 #endif  // TUPP_USB_MSC_BOT_DEVICE_H
+

@@ -9,14 +9,14 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#ifndef TUPP_USB_CDC_COMMON_H_
-#define TUPP_USB_CDC_COMMON_H_
+#ifndef TUPP_USB_CDC_STRUCTS_H_
+#define TUPP_USB_CDC_STRUCTS_H_
 
 #include "usb_structs.h"
 
-namespace USB::CDC {
+namespace TUPP::CDC {
     //////////////////////////////////
     // Functional Descriptor base type
     //////////////////////////////////
@@ -216,4 +216,5 @@ namespace USB::CDC {
 
 }   // namespace USB::CDC
 
-#endif  // TUPP_USB_CDC_COMMON_H_
+#endif  // TUPP_USB_CDC_STRUCTS_H_
+

@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #ifndef TUPP_USB_CDC_DEFINES_H
 #define TUPP_USB_CDC_DEFINES_H
@@ -101,3 +101,4 @@
     IF_PROTOCOL_CDC_DATA_PROTOCOL_HOST_BASED_DRIVER         = 0xFD
 
 #endif  // TUPP_USB_CDC_DEFINES_H
+

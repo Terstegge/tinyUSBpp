@@ -9,24 +9,34 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_endpoint.h"
 #include "usb_interface.h"
-#include <cstring>
+
+#if (TUPP_USE_BYTEWISE_MEMCPY)
+    // Use a simple version of memcpy to prevent unaligned accesses.
+    void tupp_memcpy (uint8_t *to, const uint8_t *from, size_t n) {
+        while (n--) *to++ = *from++;
+    }
+#else
+    // Use the standard memcpy
+    #include <cstring>
+    #define tupp_memcpy memcpy
+#endif
 
 usb_endpoint::usb_endpoint(
         uint8_t addr,
-        USB::ep_attributes_t transfer_type,
+        TUPP::ep_attributes_t transfer_type,
         uint16_t packet_size,
         uint8_t interval,
         usb_interface *interface)
 : descriptor(_descriptor)
 {
     // Set descriptor length
-    _descriptor.bLength = sizeof(USB::endpoint_descriptor_t);
+    _descriptor.bLength = sizeof(TUPP::endpoint_descriptor_t);
     // Set descriptor type
-    _descriptor.bDescriptorType = USB::bDescriptorType_t::DESC_ENDPOINT;
+    _descriptor.bDescriptorType = TUPP::bDescriptorType_t::DESC_ENDPOINT;
     // Set up remaining descriptor items
     set_bEndpointAddress(addr);
     set_bmAttributes    (transfer_type);
@@ -59,7 +69,7 @@ void usb_endpoint::start_transfer(uint8_t * buffer, uint16_t len) {
 
     if (is_IN() && _current_len) {
         // Copy the data from user buffer to the HW buffer
-        memcpy(_hw_buffer, _current_ptr, _current_len);
+        tupp_memcpy(_hw_buffer, _current_ptr, _current_len);
         // Update transfer parameters
         _bytes_left  -= _current_len;
         _current_ptr += _current_len;
@@ -89,7 +99,7 @@ void usb_endpoint::handle_buffer_in(uint16_t) {
     _current_len = _bytes_left > descriptor.wMaxPacketSize ?
                    descriptor.wMaxPacketSize : _bytes_left;
     // Copy the data from user buffer to the HW buffer
-    memcpy(_hw_buffer, _current_ptr, _current_len);
+    tupp_memcpy(_hw_buffer, _current_ptr, _current_len);
     // Update transfer parameters
     _bytes_left  -= _current_len;
     _current_ptr += _current_len;
@@ -101,13 +111,13 @@ void usb_endpoint::handle_buffer_out(uint16_t len) {
     assert(_active);
     // Entering this method means that the host has sent us a
     // new data packet. Copy all received bytes to the user buffer.
-    memcpy(_current_ptr, _hw_buffer, len);
+    tupp_memcpy(_current_ptr, _hw_buffer, len);
     // Update transfer parameters
     _bytes_left  -= len;
     _current_ptr += len;
     // We terminate the transfer if we either have received
     // all bytes or received a 'short' packet, which returned
-    // fewer bytes as expected.
+    // fewer bytes than expected.
     if ((_bytes_left == 0) || (len < _current_len)) {
         // Let the user handler consume the complete
         // received data set.

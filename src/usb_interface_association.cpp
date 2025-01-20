@@ -9,14 +9,14 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_interface.h"
 #include "usb_interface_association.h"
 #include "usb_configuration.h"
 #include "usb_strings.h"
 #include "usb_log.h"
-using namespace USB;
+using namespace TUPP;
 
 usb_interface_association::usb_interface_association(usb_configuration & p)
     : descriptor(_descriptor), _parent(p), _descriptor{}

@@ -9,10 +9,10 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2023 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#ifndef TUPP_USB_BOS_DEV_CAP_PLATFORM_MS_H
-#define TUPP_USB_BOS_DEV_CAP_PLATFORM_MS_H
+#ifndef TUPP_USB_MS_DEV_CAP_PLATFORM_H
+#define TUPP_USB_MS_DEV_CAP_PLATFORM_H
 
 #include "usb_bos.h"
 #include "usb_bos_dev_cap.h"
@@ -22,9 +22,9 @@ class usb_ms_dev_cap_platform : public usb_bos_dev_cap {
 public:
     explicit usb_ms_dev_cap_platform(usb_bos & bos) : descriptor(_descriptor)
     {
-        _descriptor.bLength             = sizeof(USB::dev_cap_platform_ms_os_20_t);
-        _descriptor.bDescriptorType     = USB::bDescriptorType_t::DESC_DEVICE_CAPABILITY;
-        _descriptor.bDevCapabilityType  = USB::bDevCapabilityType_t::CAP_PLATFORM;
+        _descriptor.bLength             = sizeof(TUPP::dev_cap_platform_ms_os_20_t);
+        _descriptor.bDescriptorType     = TUPP::bDescriptorType_t::DESC_DEVICE_CAPABILITY;
+        _descriptor.bDevCapabilityType  = TUPP::bDevCapabilityType_t::CAP_PLATFORM;
         _descriptor.bReserved           = 0;
         _descriptor.wMSOSDescriptorSetTotalLength = 0;
         bos.add_capability(this);
@@ -52,7 +52,7 @@ public:
         _descriptor.dwWindowsVersion = ver;
     }
 
-    inline void set_bMS_VendorCode(USB::bRequest_t code) {
+    inline void set_bMS_VendorCode(TUPP::bRequest_t code) {
         _descriptor.bMS_VendorCode = code;
     }
 
@@ -61,13 +61,14 @@ public:
     }
 
     // Read-only version of our descriptor
-    const USB::dev_cap_platform_ms_os_20_t & descriptor;
+    const TUPP::dev_cap_platform_ms_os_20_t & descriptor;
 
     friend class usb_ms_header;
 
 private:
     // The binary object store (BOS) descriptor
-    USB::dev_cap_platform_ms_os_20_t _descriptor;
+    TUPP::dev_cap_platform_ms_os_20_t _descriptor;
 };
 
-#endif  // TUPP_USB_BOS_DEV_CAP_PLATFORM_MS_H
+#endif  // TUPP_USB_MS_DEV_CAP_PLATFORM_H
+
