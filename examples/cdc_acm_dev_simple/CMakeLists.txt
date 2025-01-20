@@ -23,7 +23,7 @@ add_subdirectory(../.. tinyUSB++)
 
 # pull in needed libraries
 target_link_libraries(cdc_acm_dev_simple
-    tinyUSB++
+    tinyUSB++_cdc_acm_dev_simple
     pico_stdlib
 )
 

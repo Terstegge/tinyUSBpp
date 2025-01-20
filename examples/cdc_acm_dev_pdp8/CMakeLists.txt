@@ -24,7 +24,7 @@ add_subdirectory(../.. tinyUSB++)
 
 # pull in needed libraries
 target_link_libraries(cdc_acm_dev_pdp8
-        tinyUSB++
+        tinyUSB++_cdc_acm_dev_pdp8
         pico_stdlib
 )
 

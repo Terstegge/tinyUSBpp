@@ -24,7 +24,7 @@ add_subdirectory(../.. tinyUSB++)
 
 # pull in needed libraries
 target_link_libraries(msc_ram_drive
-        tinyUSB++
+        tinyUSB++_msc_ram_drive
         pico_stdlib
 )
 
