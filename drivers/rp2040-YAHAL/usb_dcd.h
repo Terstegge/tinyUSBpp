@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // Implementation of the USB Device Controller Driver (DCD)
 // using the YAHAL OS.

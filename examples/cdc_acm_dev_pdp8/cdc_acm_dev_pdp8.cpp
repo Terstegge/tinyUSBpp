@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This is a simulator for a PDP-8, a minicomputer
 // build by Digital Equipment Corporation in the

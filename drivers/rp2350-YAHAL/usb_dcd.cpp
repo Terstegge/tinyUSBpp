@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include "usb_dcd.h"
 #include "usb_endpoint_rp2350.h"

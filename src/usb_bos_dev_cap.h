@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class serves as a virtual base class
 // for various device capability descriptors

@@ -9,7 +9,7 @@
 //
 // This file is part of tinyUSB++, C++ based and easy to
 // use library for USB host/device functionality.
-// (c) 2024 A. Terstegge  (Andreas.Terstegge@gmail.com)
+// (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // Simple CDC ACM example. The serial device will
 // simply echo every character. This can e.g. be
