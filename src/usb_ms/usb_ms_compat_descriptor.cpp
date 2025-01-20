@@ -23,6 +23,7 @@ usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
                                                    const char * URL)
 : _controller(ctrl), _device(dev), _bos(_device)
 {
+    (void)URL;
 #if 0
 // {3408b638-09a9-47a0-8bfd-a0768815b665}
     uint8_t uuid1[16] = { 0x38, 0xB6, 0x08, 0x34, 0xA9, 0x09, 0xA0, 0x47,

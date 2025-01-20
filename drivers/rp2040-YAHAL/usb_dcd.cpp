@@ -122,7 +122,7 @@ void USBCTRL_IRQ_Handler(void) {
     // Setup packet received
     if (USBCTRL_REGS.INTS.SETUP_REQ) {
         USBCTRL_REGS_CLR.SIE_STATUS.SETUP_REC = 1;
-        usb_dcd::inst().setup_handler((USB::setup_packet_t *)&USBCTRL_DPRAM);
+        usb_dcd::inst().setup_handler((TUPP::setup_packet_t *)&USBCTRL_DPRAM);
     }
     // Bus is reset
     if (USBCTRL_REGS.INTS.BUS_RESET) {

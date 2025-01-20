@@ -41,7 +41,7 @@ public:
 
 private:
     usb_endpoint_rp2040(uint8_t  addr,
-                        USB::ep_attributes_t  type,
+                        TUPP::ep_attributes_t  type,
                         uint16_t packet_size = 64,
                         uint8_t  interval    = 0,
                         usb_interface * interface = nullptr);
