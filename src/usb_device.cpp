@@ -44,7 +44,7 @@ void usb_device::set_SerialNumber(const char * s) {
 }
 
 void usb_device::add_configuration(usb_configuration * config) {
-    TUPP_LOG(LOG_DEBUG, "set_configuration()");
+    TUPP_LOG(LOG_DEBUG, "add_configuration()");
     int i=0;
     // Find an empty slot
     for (i=0; i < TUPP_MAX_CONF_PER_DEVICE; ++i) {

@@ -110,6 +110,7 @@ void usb_interface::activate_endpoints(bool b) {
 }
 
 uint16_t usb_interface::prepare_descriptor(uint8_t * buffer, uint16_t size) {
+    TUPP_LOG(LOG_DEBUG, "prepare_descriptor()");
     uint8_t * tmp_ptr = buffer;
     // Process interface association
     if (_assoc_ptr) {

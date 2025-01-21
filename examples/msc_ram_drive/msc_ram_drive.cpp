@@ -27,10 +27,6 @@ const uint16_t BLOCK_SIZE  = 512;
 const uint32_t BLOCK_COUNT = 400;
 
 int main() {
-    // Initialize the LED
-    gpio_init   (PICO_DEFAULT_LED_PIN);
-    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
-
     // USB Device driver
     usb_dcd & driver = usb_dcd::inst();
     // USB device: Root object of USB descriptor tree
@@ -60,15 +56,19 @@ int main() {
     // USB CDC ACM device
     usb_cdc_acm_device acm_device(controller, config);
 
-    // RAM area for our drive
-    uint8_t ram_drive[BLOCK_COUNT][BLOCK_SIZE] {0};
-    memcpy(ram_drive, image, sizeof image);
-
     // MSC device
     usb_msc_bot_device msc_device(controller, config);
     msc_device.set_vendor_id  ("Vendor");
     msc_device.set_product_id ("MSC Test Device");
     msc_device.set_product_rev("1.0");
+
+    // Initialize the LED
+    gpio_init   (PICO_DEFAULT_LED_PIN);
+    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+
+    // RAM area for our drive
+    uint8_t ram_drive[BLOCK_COUNT][BLOCK_SIZE] {0};
+    memcpy(ram_drive, image, sizeof image);
 
     // Set callback handlers
     msc_device.capacity_handler = [&](uint16_t & block_size,
@@ -78,16 +78,16 @@ int main() {
     };
     msc_device.read_handler = [&](uint8_t * buff, uint32_t block) {
         memcpy(buff, ram_drive[block], BLOCK_SIZE);
-        gpio_put(PICO_DEFAULT_LED_PIN, 1);
+        gpio_put(PICO_DEFAULT_LED_PIN, true);
     };
     msc_device.write_handler = [&](uint8_t * buff, uint32_t block) {
         memcpy(ram_drive[block], buff, BLOCK_SIZE);
-        gpio_put(PICO_DEFAULT_LED_PIN, 1);
+        gpio_put(PICO_DEFAULT_LED_PIN, true);
     };
 
     // Activate USB device
     driver.pullup_enable(true);
-    while (!controller.active_configuration) ;
+    while (!controller.active_configuration) sleep_ms(20);
 
     uint8_t  buff[16];
     uint32_t count = 0;
@@ -108,7 +108,7 @@ int main() {
         count++;
         if (count > 200000) {
             count = 0;
-            gpio_put(PICO_DEFAULT_LED_PIN, 0);
+            gpio_put(PICO_DEFAULT_LED_PIN, false);
         }
         // Handle MSC requests
         msc_device.handle_request();

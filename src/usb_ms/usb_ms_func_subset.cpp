@@ -11,6 +11,7 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+#include "usb_log.h"
 #include "usb_ms_func_subset.h"
 #include "usb_ms_config_subset.h"
 #include <cassert>
@@ -18,6 +19,7 @@
 usb_ms_func_subset::usb_ms_func_subset(usb_ms_config_subset & config_subset)
 : descriptor{_descriptor}, _compat_id{nullptr}, _reg_props{}, _descriptor{}, _config_subset{config_subset}
 {
+    TUPP_LOG(LOG_DEBUG, "usb_ms_func_subset() @%x", this);
     // Set header values
     _descriptor.wLength             = sizeof(TUPP::ms_func_subset_header_t);
     _descriptor.wDescriptorType     = TUPP::wDescriptorType_t::DESC_FUNC_SUBSET;
@@ -29,6 +31,7 @@ usb_ms_func_subset::usb_ms_func_subset(usb_ms_config_subset & config_subset)
 
 // Add a compatibility ID
 void usb_ms_func_subset::add_compatible_ID(usb_ms_compatible_ID * compat_id) {
+    TUPP_LOG(LOG_DEBUG, "add_compatible_ID()");
     assert(!_compat_id);
     _compat_id = compat_id;
     inc_subset_length(sizeof(TUPP::ms_compat_id_header_t));
@@ -36,6 +39,7 @@ void usb_ms_func_subset::add_compatible_ID(usb_ms_compatible_ID * compat_id) {
 
 // Add a registry property
 void usb_ms_func_subset::add_registry_property(usb_ms_registry_property * reg_prop) {
+    TUPP_LOG(LOG_DEBUG, "add_registry_property()");
     int i=0;
     // Find an empty slot
     for (i=0; i < TUPP_MAX_MS_REG_PROP; ++i) {
@@ -49,6 +53,7 @@ void usb_ms_func_subset::add_registry_property(usb_ms_registry_property * reg_pr
 }
 
 void usb_ms_func_subset::inc_subset_length(uint16_t inc) {
+    TUPP_LOG(LOG_DEBUG, "inc_subset_length(%d)", inc);
     _descriptor.wSubsetLength += inc;
     _config_subset.inc_total_length(inc);
 }

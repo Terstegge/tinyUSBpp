@@ -50,7 +50,7 @@ public:
                                  ep_attributes_t type,
                                  uint16_t        packet_size = TUPP_DEFAULT_PAKET_SIZE,
                                  uint8_t         interval    = TUPP_DEFAULT_POLL_INTERVAL,
-                                 usb_interface * interface = nullptr) = 0;
+                                 usb_interface * interface   = nullptr) = 0;
 
     // Create a new endpoint based on its direction.
     // The next free available address is used.
@@ -59,7 +59,7 @@ public:
                                  ep_attributes_t type,
                                  uint16_t        packet_size = TUPP_DEFAULT_PAKET_SIZE,
                                  uint8_t         interval    = TUPP_DEFAULT_POLL_INTERVAL,
-                                 usb_interface * interface = nullptr) = 0;
+                                 usb_interface * interface   = nullptr) = 0;
 
     virtual usb_endpoint * addr_to_ep(uint8_t addr) = 0;
 

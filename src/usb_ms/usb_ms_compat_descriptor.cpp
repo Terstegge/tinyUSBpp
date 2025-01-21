@@ -23,6 +23,7 @@ usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
                                                    const char * URL)
 : _controller(ctrl), _device(dev), _bos(_device)
 {
+    TUPP_LOG(LOG_DEBUG, "usb_ms_compat_descriptor() @%x", this);
     (void)URL;
 #if 0
 // {3408b638-09a9-47a0-8bfd-a0768815b665}
@@ -93,6 +94,7 @@ usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
 }
 
 uint16_t usb_ms_compat_descriptor::prepare_descriptor() {
+    TUPP_LOG(LOG_DEBUG, "prepare_descriptor()");
     auto * tmp_ptr  = _buffer;
     auto * ptr1     = &_ms_header.descriptor;
     auto   len1     =  _ms_header.descriptor.wLength;

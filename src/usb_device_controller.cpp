@@ -12,7 +12,7 @@
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class is the central USB device controller. Its main
-// job is to set up EP0, and listen to USB request. The standard
+// job is to set up EP0 and listen to USB request. The standard
 // requests are handled within this class, the device/interface/
 // endpoint-specific requests will be forwarded to the correct
 // destination.
@@ -45,10 +45,9 @@ usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_dev
      handler{nullptr}, _driver(driver), _device(device), _active_configuration(0), _buf{}
 {
     TUPP_LOG(LOG_DEBUG, "usb_device_controller() @%x", this);
-    // Create standard endpoints 0. Since these are the first
-    // two endpoints, address 0 will be used automatically
-    _ep0_in  = _driver.create_endpoint(DIR_IN,  TRANS_CONTROL);
-    _ep0_out = _driver.create_endpoint(DIR_OUT, TRANS_CONTROL);
+    // Create standard endpoints with address 0.
+    _ep0_in  = _driver.create_endpoint(0x80, TRANS_CONTROL);
+    _ep0_out = _driver.create_endpoint(0x00, TRANS_CONTROL);
     // The data handlers for EP0
     _ep0_in->data_handler = [&](uint8_t *, uint16_t len) {
         // Prepare to receive status stage from host
@@ -59,7 +58,7 @@ usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_dev
         if (len) _ep0_in->send_zlp_data1();
         // Call data handler. Remember we are in an IRQ context here,
         // and the handler should be as short as possible (maybe only
-        // setting a flag...
+        // setting a flag...)
         if (handler) {
             handler(data, len);
             handler = nullptr;
@@ -293,7 +292,7 @@ void usb_device_controller::handle_set_descriptor(setup_packet_t * pkt) {
 }
 
 void usb_device_controller::handle_get_configuration(setup_packet_t *pkt) {
-    TUPP_LOG(LOG_INFO, "Get descriptor");
+    TUPP_LOG(LOG_INFO, "Get configuration");
     (void)pkt;
     assert(pkt->direction == DIR_IN);
     assert(pkt->recipient == REC_DEVICE);

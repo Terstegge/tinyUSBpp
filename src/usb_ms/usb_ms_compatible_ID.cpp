@@ -11,12 +11,14 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+#include "usb_log.h"
 #include "usb_ms_compatible_ID.h"
 #include "usb_ms_func_subset.h"
 
 usb_ms_compatible_ID::usb_ms_compatible_ID(usb_ms_func_subset & func_subset)
 : descriptor{_descriptor}, _func_subset{func_subset}
 {
+    TUPP_LOG(LOG_DEBUG, "usb_ms_compatible_ID() @%x", this);
     // Set header values
     _descriptor.wLength             = sizeof(TUPP::ms_compat_id_header_t);
     _descriptor.wDescriptorType     = TUPP::wDescriptorType_t::DESC_COMPAT_ID;

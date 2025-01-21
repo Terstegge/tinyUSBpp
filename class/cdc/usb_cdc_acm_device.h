@@ -89,7 +89,7 @@ private:
 
     // Line coding information
     CDC::line_coding_t          _line_coding;
-    char                        _line_coding_str[20];
+    char                        _line_coding_str[20] {};
 
     // FIFOs for received data and data to be transmitted.
     fifo<uint8_t, TUPP_CDC_ACM_FIFO_SIZE> _received_data;

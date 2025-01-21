@@ -11,6 +11,7 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+#include "usb_log.h"
 #include "usb_ms_config_subset.h"
 #include "usb_ms_header.h"
 #include <cassert>
@@ -18,6 +19,7 @@
 usb_ms_config_subset::usb_ms_config_subset(usb_ms_header & header)
 : descriptor{_descriptor}, _func_subsets{}, _descriptor{}, _ms_header{header}
 {
+    TUPP_LOG(LOG_DEBUG, "usb_ms_config_subset() @%x", this);
     // Set header values
     _descriptor.wLength             = sizeof(TUPP::ms_config_subset_header_t);
     _descriptor.wDescriptorType     = TUPP::wDescriptorType_t::DESC_CONFIG_SUBSET;
@@ -29,6 +31,7 @@ usb_ms_config_subset::usb_ms_config_subset(usb_ms_header & header)
 
 // Add a capability
 void usb_ms_config_subset::add_ms_func_subset(usb_ms_func_subset * config_subset) {
+    TUPP_LOG(LOG_DEBUG, "add_ms_func_subset()");
     int i=0;
     // Find an empty slot
     for (i=0; i < TUPP_MAX_MS_FUNC_SUBSETS; ++i) {
@@ -41,6 +44,7 @@ void usb_ms_config_subset::add_ms_func_subset(usb_ms_func_subset * config_subset
 }
 
 void usb_ms_config_subset::inc_total_length(uint16_t inc) {
+    TUPP_LOG(LOG_DEBUG, "inc_total_length(%d)", inc);
     _descriptor.wTotalLength += inc;
     _ms_header.inc_total_length(inc);
 }

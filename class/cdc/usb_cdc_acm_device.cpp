@@ -219,10 +219,11 @@ bool usb_cdc_acm_device::notify_serial_state(const TUPP::CDC::bmUartState_t & st
 }
 
 char * usb_cdc_acm_device::line_coding_2_str() {
+    TUPP_LOG(LOG_DEBUG, "line_coding_2_str()");
     const char *parity[5] = {"N", "O", "E", "M", "S"};
     const char *stop[3] = {"1", "1.5", "2"};
     char * cp = _line_coding_str;
-    itoa(line_coding.dwDTERate, cp, 10);
+    itoa((int)line_coding.dwDTERate, cp, 10);
     strcat(_line_coding_str, " baud ");
     cp += strlen(_line_coding_str);
     itoa(line_coding.bDataBits, cp, 10);

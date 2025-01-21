@@ -38,14 +38,14 @@ Still there are some relevant differences:
  
 ## Examples
 
-There are some examples for the RPi Pico (RP2040) to demomstrate the
-CDC ACM and MSC functionality. Running these example is quite
-straightforward:
+There are some examples for the RPi Pico (RP2040) and Pico 2 (R2350) to
+demomstrate the CDC ACM and MSC functionality. Running these example is
+quite straightforward:
 
-* Create a build folder below a examples folder and change the
+* Create a build folder inside an example folder and change the
   working directory to it.
 * Set your PICO_SDK_PATH or uncomment and change the related line in the
-  CMakeLists.txt
+  CMakeLists.txt. Also select the pico board type.
 * Run 'cmake ..' and 'make'
 * Copy the generated UF2 file to the RPi Pico - thats it!
 

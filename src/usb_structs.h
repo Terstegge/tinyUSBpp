@@ -245,15 +245,15 @@ namespace TUPP {
     };
 
     struct __attribute__((__packed__)) dev_capability_t {
-        uint8_t                 bLength;
-        bDescriptorType_t       bDescriptorType;
-        bDevCapabilityType_t    bDevCapabilityType;
+        uint8_t                 bLength {0};
+        bDescriptorType_t       bDescriptorType {0};
+        bDevCapabilityType_t    bDevCapabilityType {0};
     };
     static_assert(sizeof(dev_capability_t) == 3);
 
     struct __attribute__((__packed__)) dev_cap_platform_t : public dev_capability_t {
-        uint8_t                 bReserved;
-        uint8_t                 PlatformCapabilityUUID[16];
+        uint8_t                 bReserved {0};
+        uint8_t                 PlatformCapabilityUUID[16] {0};
     };
     static_assert(sizeof(dev_cap_platform_t) == 20);
 };

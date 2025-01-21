@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 
-#set(PICO_SDK_PATH ~/github/pico-sdk)
-set(PICO_BOARD pico)
-#set(PICO_BOARD pico2)
+set(PICO_SDK_PATH ~/github/pico-sdk)
+#set(PICO_BOARD pico)
+set(PICO_BOARD pico2)
 
 # tinyUSB++ needs some features of this C++ standard
 set(CMAKE_CXX_STANDARD 20)
