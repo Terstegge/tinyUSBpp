@@ -45,6 +45,7 @@ public:
         _descriptor.bMaxPower = n/2;
     }
     void set_Description(const char *);
+    void set_remote_wakeup(bool b);
 
     // Calculate the total length of our configuration
     // descriptor and modify our descriptor accordingly

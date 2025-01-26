@@ -47,8 +47,8 @@ public:
     const volatile uint8_t & active_configuration;
 
     // Standard endpoints 0
-    usb_endpoint * _ep0_in;
-    usb_endpoint * _ep0_out;
+    usb_endpoint * _ep0_in  {nullptr};
+    usb_endpoint * _ep0_out {nullptr};
 
     std::function<void(uint8_t *, uint16_t)> handler;
 
@@ -68,9 +68,9 @@ private:
 
     usb_dcd_interface & _driver;
     usb_device &        _device;
-    volatile uint8_t    _active_configuration;
+    volatile uint8_t    _active_configuration {0};
     // Buffer for device descriptors
-    uint8_t             _buf[TUPP_MAX_DESC_SIZE];
+    uint8_t             _buf[TUPP_MAX_DESC_SIZE] {};
 };
 
 #endif  // TUPP_USB_DEVICE_CONTROLLER_H

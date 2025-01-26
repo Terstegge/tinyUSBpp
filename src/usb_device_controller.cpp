@@ -25,7 +25,6 @@
 #include "usb_interface.h"
 #include "usb_interface_association.h"
 #include "usb_bos.h"
-#include "usb_bos_dev_cap.h"
 #include "usb_fd_base.h"
 #include "usb_strings.h"
 #include "usb_log.h"
@@ -41,11 +40,10 @@ using enum TUPP::ep_attributes_t;
 using enum TUPP::direction_t;
 
 usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_device & device)
-    : active_configuration(_active_configuration), _ep0_in(nullptr), _ep0_out(nullptr),
-     handler{nullptr}, _driver(driver), _device(device), _active_configuration(0), _buf{}
+    : active_configuration(_active_configuration), _driver(driver), _device(device)
 {
     TUPP_LOG(LOG_DEBUG, "usb_device_controller() @%x", this);
-    // Create standard endpoints with address 0.
+    // Create standard endpoints with address 0
     _ep0_in  = _driver.create_endpoint(0x80, TRANS_CONTROL);
     _ep0_out = _driver.create_endpoint(0x00, TRANS_CONTROL);
     // The data handlers for EP0
@@ -108,7 +106,7 @@ usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_dev
                 case REQ_SET_CONFIGURATION:
                     handle_set_configuration(pkt);
                     break;
-                    // Interface requests
+                // Interface requests
                 case REQ_GET_INTERFACE:
                     handle_get_interface(pkt);
                     break;
@@ -119,7 +117,7 @@ usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_dev
                 case REQ_SYNCH_FRAME:
                     handle_synch_frame(pkt);
                     break;
-                    // Requests for different recipients
+                // Requests for different recipients
                 case REQ_GET_STATUS:
                     handle_get_status(pkt);
                     break;
@@ -255,7 +253,7 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
             if (_device.bos) {
                 // We have a BOS descriptor
                 tmp_ptr += _device.bos->prepare_descriptor(
-                        tmp_ptr, TUPP_MAX_DESC_SIZE - (tmp_ptr-_buf));
+                           tmp_ptr, TUPP_MAX_DESC_SIZE - (tmp_ptr-_buf));
                 uint16_t len = tmp_ptr - _buf;
                 if (pkt->wLength < len) len = pkt->wLength;
                 _ep0_in->start_transfer(_buf, len);
@@ -380,22 +378,38 @@ void usb_device_controller::handle_get_status(setup_packet_t * pkt) {
     assert(pkt->direction == DIR_IN);
     assert(pkt->wValue  == 0);
     assert(pkt->wLength == 2);
-    uint16_t data;
+    uint16_t data = 0;
     switch(pkt->recipient) {
         case REC_DEVICE: {
-            data = 0;
+            auto config = _device.find_configuration(_active_configuration);
+            if (config) {
+                if (config->descriptor.bmAttributes.self_powered) {
+                    data |= 1;
+                }
+                if (config->descriptor.bmAttributes.remote_wakeup) {
+                    data |= 2;
+                }
+            } else {
+                TUPP_LOG(LOG_WARNING, "Could not find active configuration %d for GET STATUS",
+                         _active_configuration);
+            }
             break;
         }
         case REC_INTERFACE: {
-            data = 0;
+            // Status of interface is always 0
             break;
         }
         case REC_ENDPOINT: {
-            data = 0;
+            auto ep = _driver.addr_to_ep(pkt->wIndex);
+            if (ep) {
+                data = ep->is_stalled() ? 1 : 0;
+            } else {
+                TUPP_LOG(LOG_WARNING, "Could not find EP 0x%x for GET STATUS", pkt->wIndex);
+            }
             break;
         }
         default:
-            TUPP_LOG(LOG_WARNING, "Unknown recipient of get status: %d",
+            TUPP_LOG(LOG_WARNING, "Unknown recipient for GET STATUS: %d",
                      pkt->recipient);
     }
     // Send status
@@ -405,17 +419,32 @@ void usb_device_controller::handle_get_status(setup_packet_t * pkt) {
 void usb_device_controller::handle_clear_feature(setup_packet_t *pkt) {
     TUPP_LOG(LOG_DEBUG, "Clear feature");
     assert(pkt->direction == DIR_IN);
+    uint16_t data = 0;
     switch(pkt->recipient) {
         case REC_DEVICE: {
+            if (pkt->wValue == 1) {
+                auto config = _device.find_configuration(_active_configuration);
+                if (config) config->set_remote_wakeup(false);
+            } else {
+                TUPP_LOG(LOG_WARNING, "Unknown CLEAR FEATURE id: %d", pkt->wValue);
+            }
             break;
         }
         case REC_ENDPOINT: {
+            if (pkt->wValue == 0) {
+                auto ep = _driver.addr_to_ep(pkt->wIndex);
+                if (ep) ep->send_stall(false);
+            } else {
+                TUPP_LOG(LOG_WARNING, "Unknown CLEAR FEATURE id: %d", pkt->wValue);
+            }
             break;
         }
         default:
-            TUPP_LOG(LOG_WARNING, "Unknown recipient of clear feature: %d",
+            TUPP_LOG(LOG_WARNING, "Unknown recipient of CLEAR FEATURE: %d",
                      pkt->recipient);
     }
+    // Status stage
+    _ep0_in->send_zlp_data1();
 }
 
 void usb_device_controller::handle_set_feature(setup_packet_t *pkt) {
@@ -423,13 +452,27 @@ void usb_device_controller::handle_set_feature(setup_packet_t *pkt) {
     assert(pkt->direction == DIR_IN);
     switch(pkt->recipient) {
         case REC_DEVICE: {
+            if (pkt->wValue == 1) {
+                auto config = _device.find_configuration(_active_configuration);
+                if (config) config->set_remote_wakeup(true);
+            } else {
+                TUPP_LOG(LOG_WARNING, "Unknown SET FEATURE id: %d", pkt->wValue);
+            }
             break;
         }
         case REC_ENDPOINT: {
+            if (pkt->wValue == 0) {
+                auto ep = _driver.addr_to_ep(pkt->wIndex);
+                if (ep) ep->send_stall(true);
+            } else {
+                TUPP_LOG(LOG_WARNING, "Unknown SET FEATURE id: %d", pkt->wValue);
+            }
             break;
         }
         default:
-            TUPP_LOG(LOG_WARNING, "Unknown recipient of set feature: %d",
+            TUPP_LOG(LOG_WARNING, "Unknown recipient for SET FEATURE: %d",
                      pkt->recipient);
     }
+    // Status stage
+    _ep0_in->send_zlp_data1();
 }

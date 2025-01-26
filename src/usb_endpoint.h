@@ -89,6 +89,9 @@ public:
     // Stall/Un-Stall this endpoint
     virtual void send_stall(bool b) = 0;
 
+    // Get the STALLed status
+    virtual bool is_stalled() const = 0;
+
 protected:
     // The endpoint CTOR is only accessible from the
     // derived implementations of this class

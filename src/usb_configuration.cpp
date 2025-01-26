@@ -38,6 +38,10 @@ void usb_configuration::set_Description(const char * n) {
     _descriptor.iConfiguration = usb_strings::inst.add_string(n);
 }
 
+void usb_configuration::set_remote_wakeup(bool b) {
+    _descriptor.bmAttributes.remote_wakeup = b;
+}
+
 void usb_configuration::set_total_length() {
     // Start with our own descriptor
     uint16_t len = sizeof(configuration_descriptor_t);

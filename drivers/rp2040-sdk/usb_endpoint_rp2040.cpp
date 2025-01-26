@@ -114,6 +114,10 @@ void usb_endpoint_rp2040::send_stall(bool b) {
     }
 }
 
+bool usb_endpoint_rp2040::is_stalled() const {
+    return *_buff_ctrl & USB_BUF_CTRL_STALL;
+}
+
 void usb_endpoint_rp2040::trigger_transfer(uint16_t len) {
     assert((*_buff_ctrl & USB_BUF_CTRL_AVAIL) == 0);
     // Prepare buffer control value

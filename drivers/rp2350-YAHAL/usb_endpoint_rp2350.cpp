@@ -112,6 +112,10 @@ void usb_endpoint_rp2350::send_stall(bool b) {
     }
 }
 
+bool usb_endpoint_rp2350::is_stalled() const {
+    return _buff_ctrl->STALL;
+}
+
 void usb_endpoint_rp2350::trigger_transfer(uint16_t len) {
     assert(_buff_ctrl->AVAILABLE_0 == 0);
     // Set pid and flip for next transfer

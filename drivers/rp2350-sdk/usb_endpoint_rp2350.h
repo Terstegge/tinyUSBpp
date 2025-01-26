@@ -34,6 +34,7 @@ public:
     void enable_endpoint(bool b) override;
 
     void send_stall(bool b) override;
+    bool is_stalled() const override;
 
     void send_NAK(bool b) override;
 
