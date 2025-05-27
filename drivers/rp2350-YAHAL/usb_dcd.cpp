@@ -62,7 +62,7 @@ usb_dcd::usb_dcd()
 }
 
 void usb_dcd::pullup_enable(bool e) {
-    USB_SET.SIE_CTRL.PULLUP_EN <<= e;
+    USB.SIE_CTRL.PULLUP_EN = e;
 }
 
 void usb_dcd::irq_enable(bool e) {

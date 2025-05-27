@@ -84,7 +84,7 @@ void usb_endpoint_rp2040::_process_buffer() {
 }
 
 void usb_endpoint_rp2040::enable_endpoint(bool b) {
-    TUPP_LOG(LOG_INFO, "Endpoint 0x%x is enabled: %b", descriptor.bEndpointAddress, b);
+    TUPP_LOG(LOG_INFO, "Endpoint 0x%x enabled: %b", descriptor.bEndpointAddress, b);
     if (_endp_ctrl) {
         _endp_ctrl->ENABLE = b;
     }

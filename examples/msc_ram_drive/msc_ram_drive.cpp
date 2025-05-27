@@ -22,6 +22,8 @@
 #include "usb_msc_bot_device.h"
 #include "image.h"
 
+#include <cstring>
+
 // Parameters of RAM disk
 const uint16_t BLOCK_SIZE  = 512;
 const uint32_t BLOCK_COUNT = 400;
@@ -79,10 +81,12 @@ int main() {
     msc_device.read_handler = [&](uint8_t * buff, uint32_t block) {
         memcpy(buff, ram_drive[block], BLOCK_SIZE);
         gpio_put(PICO_DEFAULT_LED_PIN, true);
+        return 0;
     };
     msc_device.write_handler = [&](uint8_t * buff, uint32_t block) {
         memcpy(ram_drive[block], buff, BLOCK_SIZE);
         gpio_put(PICO_DEFAULT_LED_PIN, true);
+        return 0;
     };
 
     // Activate USB device

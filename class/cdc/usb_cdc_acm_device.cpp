@@ -87,7 +87,6 @@ usb_cdc_acm_device::usb_cdc_acm_device(
         // Copy all available bytes to the fifo
         for (int i=0; i < len; ++i) {
             bool b = _received_data.put(buf[i]);
-            (void)b;
             assert(b);
         }
         // Trigger a new receive

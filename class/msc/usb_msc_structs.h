@@ -16,6 +16,8 @@
 
 #include "usb_structs.h"
 
+#define MSC_SIG(s) (*((uint32_t *)s))
+
 namespace TUPP::MSC {
 
     ///////////////////////////
@@ -26,7 +28,7 @@ namespace TUPP::MSC {
         DIR_IN  = 1
     };
 
-    const uint32_t cbw_signature = 0x43425355;
+    const uint32_t cbw_signature = MSC_SIG("USBC"); //0x43425355;
 
     struct __attribute__((__packed__)) cbw_t {
         uint32_t    dCBWSignature;
@@ -46,7 +48,7 @@ namespace TUPP::MSC {
     // Command Status Wrapper //
     ////////////////////////////
 
-    const uint32_t csw_signature = 0x53425355;
+    const uint32_t csw_signature = MSC_SIG("USBS"); //0x53425355;
 
     enum class csw_status_t : uint8_t {
         CMD_PASSED      = 0,

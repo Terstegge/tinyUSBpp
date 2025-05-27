@@ -51,7 +51,7 @@ private:
     usb_log() : _level {log_level::LOG_OFF} {}
     // The current log level
     log_level _level;
-    char _buffer[MAX_LINE_LENGTH];
+    char _buffer[MAX_LINE_LENGTH] {0};
     const char * _level_str[5] = {"[OFF] ", "[ERR] ", "[WAR] ", "[INF] ", "[DBG] "};
 };
 

@@ -52,8 +52,13 @@ namespace SCSI {
     };
     static_assert(sizeof(request_sense_t) == 6);
 
+    enum class response_code_t : uint8_t {
+        CURRENT_ERROR   = 0x70,
+        DEFERRED_ERROR  = 0x71
+    };
+
     enum class sense_key_t : uint8_t  {
-        NONE            = 0x00,
+        NO_SENSE        = 0x00,
         RECOVERED_ERROR = 0x01,
         NOT_READY       = 0x02,
         MEDIUM_ERROR    = 0x03,
@@ -72,25 +77,25 @@ namespace SCSI {
     };
 
     struct __attribute__((__packed__)) request_sense_fixed_response_t {
-        uint8_t     response_code : 7 {0};
-        uint8_t     valid         : 1 {0};
+        response_code_t response_code   : 7 {0};
+        uint8_t         valid           : 1 {0};
 
-        uint8_t     reserved {0};
+        uint8_t         reserved {0};
 
-        sense_key_t sense_key     : 4 {0};
-        uint8_t                   : 1;
-        uint8_t     ili           : 1 {0};
-        uint8_t     end_of_medium : 1 {0};
-        uint8_t     filemark      : 1 {0};
+        sense_key_t     sense_key       : 4 {0};
+        uint8_t                         : 1;
+        uint8_t         ili             : 1 {0};
+        uint8_t         end_of_medium   : 1 {0};
+        uint8_t         filemark        : 1 {0};
 
-        uint32_t    information {0};
-        uint8_t     add_sense_len {0};
-        uint32_t    cmd_specific_information {0};
-        uint8_t     add_sense_code {0};
-        uint8_t     add_sense_qualifier {0};
-        uint8_t     field_replaceable_unit_code {0};
+        uint32_t        information {0};
+        uint8_t         add_sense_len {0};
+        uint32_t        cmd_specific_information {0};
+        uint8_t         add_sense_code {0};
+        uint8_t         add_sense_qualifier {0};
+        uint8_t         field_replaceable_unit_code {0};
 
-        uint8_t     sense_key_specific[3] {0};
+        uint8_t         sense_key_specific[3] {0};
     };
     static_assert(sizeof(request_sense_fixed_response_t) == 18);
 
@@ -147,14 +152,14 @@ namespace SCSI {
         uint8_t                             : 7;
         uint8_t removable_media             : 1 {0};
 
-        version_t version;
+        version_t version {0};
 
         uint8_t response_data_format        : 4 {0};
         uint8_t hierarchical_support        : 1 {0};
         uint8_t normal_aca_support          : 1 {0};
         uint8_t                             : 2;
 
-        uint8_t additional_length;
+        uint8_t additional_length {};
 
         uint8_t protect                     : 1 {0};
         uint8_t                             : 2;
@@ -181,7 +186,7 @@ namespace SCSI {
     // MODE SENSE 6
     ///////////////
     struct __attribute__((__packed__)) mode_sense_6_t {
-        scsi_cmd_t  cmd;
+        scsi_cmd_t cmd;
 
         uint8_t                             : 3;
         uint8_t disable_block_descriptors   : 1;
@@ -197,8 +202,8 @@ namespace SCSI {
     static_assert(sizeof(mode_sense_6_t) == 6);
 
     struct __attribute__((__packed__)) mode_sense_6_response_t {
-        uint8_t mode_data_length;
-        uint8_t medium_type;
+        uint8_t mode_data_length {0};
+        uint8_t medium_type {0};
 
         uint8_t                             : 4;
         uint8_t dpo_fua_support             : 1 {0};
@@ -208,6 +213,43 @@ namespace SCSI {
         uint8_t block_descriptor_length {0};
     };
     static_assert(sizeof(mode_sense_6_response_t) == 4);
+
+    // START STOP UNIT
+    //////////////////
+    struct __attribute__((__packed__)) start_stop_unit_t {
+        scsi_cmd_t cmd {0};
+
+        uint8_t immed                       : 1 {0};
+        uint8_t                             : 7;
+
+        uint8_t reserved {0};
+
+        uint8_t power_condition_modifier    : 4 {0};
+        uint8_t                             : 4;
+
+        uint8_t start                       : 1 {0};
+        uint8_t loej                        : 1 {0};
+        uint8_t no_flush                    : 1 {0};
+        uint8_t                             : 1;
+        uint8_t power_condition             : 4 {0};
+
+        uint8_t control {0};
+    };
+    static_assert(sizeof(start_stop_unit_t) == 6);
+
+    // PREVENT ALLOW MEDIA REMOVAL
+    //////////////////////////////
+    struct __attribute__((__packed__)) prevent_allow_media_removal_t {
+        scsi_cmd_t  cmd {0};
+
+        uint8_t reserved[3] {0};
+
+        uint8_t prevent                     : 1 {0};
+        uint8_t                             : 7;
+
+        uint8_t control {0};
+    };
+    static_assert(sizeof(prevent_allow_media_removal_t) == 6);
 
     // READ CAPACITY (10)
     /////////////////////
@@ -226,13 +268,13 @@ namespace SCSI {
 
     // READ FORMAT CAPACITY
     ///////////////////////
-    struct __attribute__((__packed__)) read_format_capacity_10_t {
-        scsi_cmd_t  cmd_code;
+    struct __attribute__((__packed__)) read_format_capacity_t {
+        scsi_cmd_t  cmd;
         uint8_t     reserved[6];
         uint16_t    alloc_length;
         uint8_t     control;
     };
-    static_assert(sizeof(read_format_capacity_10_t) == 10);
+    static_assert(sizeof(read_format_capacity_t) == 10);
 
     struct __attribute__((__packed__)) read_format_capacity_10_response_t {
         uint8_t     reserved[3] {0};
@@ -244,7 +286,7 @@ namespace SCSI {
         uint8_t     reserved2 {0};
         uint16_t    block_size_u16 {0};
     };
-    static_assert(sizeof(read_format_capacity_10_t) == 10);
+    static_assert(sizeof(read_format_capacity_t) == 10);
 
     // READ 10
     //////////

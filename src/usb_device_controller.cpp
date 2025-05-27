@@ -65,7 +65,7 @@ usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_dev
 
     // Handler for USB bus reset
     _driver.bus_reset_handler = [&]() {
-        TUPP_LOG(LOG_INFO, "USB BUS RESET");
+        TUPP_LOG(LOG_INFO, "USB Bus Reset");
         // Reset the USB address
         _driver.reset_address();
         // Deactivate configuration, if existing
@@ -170,6 +170,7 @@ usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_dev
 }
 
 void usb_device_controller::handle_set_address(setup_packet_t * pkt) {
+    TUPP_LOG(LOG_DEBUG, "handle_set_address()");
     assert(pkt->direction == DIR_OUT);
     assert(pkt->recipient == REC_DEVICE);
     assert(pkt->wIndex  == 0);
@@ -198,7 +199,7 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
             break;
         }
         case DESC_CONFIGURATION: {
-            TUPP_LOG(LOG_INFO, "Get configuration descriptor %d (len=%d)",
+            TUPP_LOG(LOG_INFO, "Get configuration descriptor (index %d, len=%d)",
                      desc_index, pkt->wLength);
             auto conf = _device.configurations[desc_index];
             if (conf) {
@@ -290,7 +291,7 @@ void usb_device_controller::handle_set_descriptor(setup_packet_t * pkt) {
 }
 
 void usb_device_controller::handle_get_configuration(setup_packet_t *pkt) {
-    TUPP_LOG(LOG_INFO, "Get configuration");
+    TUPP_LOG(LOG_INFO, "Get configuration (%d)", _active_configuration);
     (void)pkt;
     assert(pkt->direction == DIR_IN);
     assert(pkt->recipient == REC_DEVICE);
@@ -298,7 +299,7 @@ void usb_device_controller::handle_get_configuration(setup_packet_t *pkt) {
 }
 
 void usb_device_controller::handle_set_configuration(setup_packet_t *pkt) {
-    TUPP_LOG(LOG_DEBUG, "Set configuration");
+    TUPP_LOG(LOG_DEBUG, "Set configuration (%d)", pkt->wValue & 0xff);
     assert(pkt->direction == DIR_OUT);
     assert(pkt->recipient == REC_DEVICE);
     uint8_t index = pkt->wValue & 0xff;
@@ -328,7 +329,7 @@ void usb_device_controller::handle_set_configuration(setup_packet_t *pkt) {
 }
 
 void usb_device_controller::handle_get_interface(setup_packet_t *pkt) {
-    TUPP_LOG(LOG_INFO, "Get interface");
+    TUPP_LOG(LOG_INFO, "Get interface (%d)", pkt->wIndex & 0xff);
     assert(pkt->direction == DIR_IN);
     assert(pkt->recipient == REC_INTERFACE);
     uint8_t index = pkt->wIndex & 0xff;
@@ -417,12 +418,11 @@ void usb_device_controller::handle_get_status(setup_packet_t * pkt) {
 }
 
 void usb_device_controller::handle_clear_feature(setup_packet_t *pkt) {
-    TUPP_LOG(LOG_DEBUG, "Clear feature");
-    assert(pkt->direction == DIR_IN);
-    uint16_t data = 0;
+    assert(pkt->direction == DIR_OUT);
     switch(pkt->recipient) {
         case REC_DEVICE: {
             if (pkt->wValue == 1) {
+                TUPP_LOG(LOG_INFO, "Set feature: Remote wakeup off");
                 auto config = _device.find_configuration(_active_configuration);
                 if (config) config->set_remote_wakeup(false);
             } else {
@@ -432,6 +432,7 @@ void usb_device_controller::handle_clear_feature(setup_packet_t *pkt) {
         }
         case REC_ENDPOINT: {
             if (pkt->wValue == 0) {
+                TUPP_LOG(LOG_INFO, "Set feature: EP 0x%x stall off", pkt->wIndex);
                 auto ep = _driver.addr_to_ep(pkt->wIndex);
                 if (ep) ep->send_stall(false);
             } else {
@@ -448,11 +449,11 @@ void usb_device_controller::handle_clear_feature(setup_packet_t *pkt) {
 }
 
 void usb_device_controller::handle_set_feature(setup_packet_t *pkt) {
-    TUPP_LOG(LOG_INFO, "Set feature");
-    assert(pkt->direction == DIR_IN);
+    assert(pkt->direction == DIR_OUT);
     switch(pkt->recipient) {
         case REC_DEVICE: {
             if (pkt->wValue == 1) {
+                TUPP_LOG(LOG_INFO, "Set feature: Remote wakeup on");
                 auto config = _device.find_configuration(_active_configuration);
                 if (config) config->set_remote_wakeup(true);
             } else {
@@ -462,6 +463,7 @@ void usb_device_controller::handle_set_feature(setup_packet_t *pkt) {
         }
         case REC_ENDPOINT: {
             if (pkt->wValue == 0) {
+                TUPP_LOG(LOG_INFO, "Set feature: EP 0x%x stall on", pkt->wIndex);
                 auto ep = _driver.addr_to_ep(pkt->wIndex);
                 if (ep) ep->send_stall(true);
             } else {

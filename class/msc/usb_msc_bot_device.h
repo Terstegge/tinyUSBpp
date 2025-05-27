@@ -12,7 +12,7 @@
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 // This class represents a MSC (Mass Storage Class) BOT (Bulk Only Tramsfer)
-// device. The user interface are 4 handler functions (see below).
+// device. The user interface are 6 handler functions (see below).
 //
 #ifndef TUPP_USB_MSC_BOT_DEVICE_H
 #define TUPP_USB_MSC_BOT_DEVICE_H
@@ -25,17 +25,14 @@
 #include "usb_device_controller.h"
 #include "usb_config.h"
 #include <array>
-#include <cstring>
-#include <cassert>
 
 class usb_msc_bot_device {
 public:
     usb_msc_bot_device(usb_device_controller & controller,
                        usb_configuration     & configuration);
 
-    // Handle next MSC request. Method will return true if
-    // some command has been handled, false if not.
-    bool handle_request();
+    // Handle next MSC request.
+    void handle_request();
 
     // Callback handler to get the block size and block count of the device.
     // block size should normally be TUPP_MSC_BLOCK_SIZE, other cases are
@@ -43,39 +40,27 @@ public:
     std::function<void(uint16_t & block_size, uint32_t & block_count)> capacity_handler;
 
     // Callback handler to read a single block from the device
-    std::function<void(uint8_t * buff, uint32_t block)> read_handler;
+    std::function<uint8_t(uint8_t * buff, uint32_t block)> read_handler;
 
     // Callback handler to write a single block to the device
-    std::function<void(uint8_t * buff, uint32_t block)> write_handler;
+    std::function<uint8_t (uint8_t * buff, uint32_t block)> write_handler;
 
     // Callback handler to get the 'writable' state
     std::function<bool()> is_writeable_handler;
 
+    // Callback handler to get the start/stop and eject state
+    std::function<void(bool start, bool load_eject)> start_stop_handler;
+
+    // Callback handler for the removable state
+    std::function<void(bool prevent_removal)> remove_handler;
+
     // Setters for IDs in inquiry response
-    inline void set_vendor_id(const char * id) {
-        TUPP_LOG(LOG_DEBUG, "set_vendor_id(%s)", id);
-        if (strlen(id) > 8) {
-            TUPP_LOG(LOG_WARNING, "SCSI Vendor ID too long. Truncated!");
-        }
-        strncpy((char*)_inquiry_response.vendor_id, id,
-                sizeof _inquiry_response.vendor_id);
-    }
-    inline void set_product_id(const char * id) {
-        TUPP_LOG(LOG_DEBUG, "set_product_id(%s)", id);
-        if (strlen(id) > 16) {
-            TUPP_LOG(LOG_WARNING, "SCSI Product ID too long. Truncated!");
-        }
-        strncpy((char*)_inquiry_response.product_id, id,
-                sizeof _inquiry_response.product_id);
-    }
-    inline void set_product_rev(const char * rev) {
-        TUPP_LOG(LOG_DEBUG, "set_product_rev(%s)", rev);
-        if (strlen(rev) > 4) {
-            TUPP_LOG(LOG_WARNING, "SCSI Product Rev too long. Truncated!");
-        }
-        strncpy((char*)_inquiry_response.product_rev, rev,
-                sizeof _inquiry_response.product_rev);
-    }
+    void set_vendor_id(const char * id);
+    void set_product_id(const char * id);
+    void set_product_rev(const char * rev);
+
+    // Setter for device status
+    void set_device_ready(bool ready);
 
 private:
 
@@ -94,15 +79,17 @@ private:
     usb_endpoint *              _ep_in  {nullptr};
     usb_endpoint *              _ep_out {nullptr};
 
-    uint8_t                     _max_lun;
+    uint8_t                     _max_lun {0};
 
     state_t                     _state;
-    MSC::csw_t                  _csw;
+    MSC::csw_t                  _csw {};
+
+    bool                        _device_ready {true};
 
     // Internal data buffers
-    volatile uint16_t           _buffer_out_len;
-    uint8_t                     _buffer_out[TUPP_MSC_BLOCK_SIZE];
-    uint8_t                     _buffer_in [TUPP_MSC_BLOCK_SIZE];
+    volatile uint16_t           _buffer_out_len {0};
+    uint8_t                     _buffer_out[TUPP_MSC_BLOCK_SIZE] {0};
+    uint8_t                     _buffer_in [TUPP_MSC_BLOCK_SIZE] {0};
 
     // Various SCSI response types
     SCSI::inquiry_response_t                    _inquiry_response;
@@ -114,9 +101,9 @@ private:
     void process_scsi_command();
 
     // Data transfer parameters
-    uint16_t                    _blocks_to_transfer;
-    uint16_t                    _blocks_transferred;
-    uint32_t                    _block_addr;
+    uint16_t                    _blocks_to_transfer {0};
+    uint16_t                    _blocks_transferred {0};
+    uint32_t                    _block_addr {0};
 };
 
 #endif  // TUPP_USB_MSC_BOT_DEVICE_H
