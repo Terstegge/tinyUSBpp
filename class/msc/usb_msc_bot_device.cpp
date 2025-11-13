@@ -110,11 +110,34 @@ usb_msc_bot_device::usb_msc_bot_device(
     _sense_fixed_response.add_sense_len     = sizeof (_sense_fixed_response) - 8;
 
     // Initialize the SCSI MODE SENSE 6 response
-    _mode_sense_6_response.mode_data_length = 3;
+    _mode_sense_6_response.mode_data_length = sizeof(_mode_sense_6_response)-1;
     _mode_sense_6_response.medium_type      = 0;
     _mode_sense_6_response.write_protect    = false;
     _mode_sense_6_response.block_descriptor_length = 0;
 }
+
+
+
+void usb_msc_bot_device::scsi_success() {
+    // Set sense keys
+    _sense_fixed_response.sense_key         = SCSI::sense_key_t::NO_SENSE;
+    _sense_fixed_response.add_sense_code    = 0;
+    _sense_fixed_response.add_sense_qualifier = 0;
+    // Set Command Status Wrapper
+    _csw.dCSWDataResidue                    = 0;
+    _csw.bCSWStatus                         = MSC::csw_status_t::CMD_PASSED;
+}
+
+void usb_msc_bot_device::scsi_fail(SCSI::sense_key_t key, uint8_t code, uint8_t qualifier) {
+    // Set sense keys
+    _sense_fixed_response.sense_key         = key;
+    _sense_fixed_response.add_sense_code    = code;
+    _sense_fixed_response.add_sense_qualifier = qualifier;
+    // Set Command Status Wrapper
+    _csw.dCSWDataResidue                    = 0;
+    _csw.bCSWStatus                         = MSC::csw_status_t::CMD_FAILED;
+}
+
 
 // This method implements a simple state machine
 // according to the MSC BOT specification. This
@@ -150,7 +173,7 @@ void usb_msc_bot_device::handle_request() {
             _csw.dCSWSignature   = MSC::csw_signature;
             _csw.dCSWTag         = cbw->dCBWTag;
             _csw.dCSWDataResidue = 0;
-            _csw.bCSWStatus      = _device_ready ? MSC::csw_status_t::CMD_PASSED : MSC::csw_status_t::CMD_FAILED;
+            _csw.bCSWStatus      = MSC::csw_status_t::CMD_PASSED;
 
             // Default: Continue with sending the CSW
             _state = state_t::SEND_CSW;
@@ -161,6 +184,18 @@ void usb_msc_bot_device::handle_request() {
             // Mark data as consumed and accept new packets
             _buffer_out_len = 0;
             _ep_out->send_NAK(false);
+            break;
+        }
+        case state_t::SEND_CSW: {
+            if (_ep_in->is_active()) {
+                // EP still active, so keep this state
+                // and wait for the EP to be usable...
+                break;
+            }
+            TUPP_LOG(LOG_DEBUG, "STATE: SEND_CSW");
+            _ep_in->start_transfer((uint8_t *)&_csw, sizeof(_csw));
+            // Continue with next CBW
+            _state = state_t::RECEIVE_CBW;
             break;
         }
         case state_t::DATA_READ: {
@@ -180,13 +215,7 @@ void usb_msc_bot_device::handle_request() {
                 _state = state_t::SEND_CSW;
             }
             if (res) {
-                // An error occurred.
-                // Set the SENSE response
-                _sense_fixed_response.sense_key             = SCSI::sense_key_t::HARDWARE_ERROR;
-                _sense_fixed_response.add_sense_code        = 0;
-                _sense_fixed_response.add_sense_qualifier   = 0;
-                // Set the CSW status
-               _csw.bCSWStatus = MSC::csw_status_t::CMD_FAILED;
+                scsi_fail(SCSI::sense_key_t::NOT_READY, 0x3a, 0);
             }
             break;
         }
@@ -206,29 +235,11 @@ void usb_msc_bot_device::handle_request() {
                 _state = state_t::SEND_CSW;
             }
             if (res) {
-                // An error occurred.
-                // Set the SENSE response
-                _sense_fixed_response.sense_key             = SCSI::sense_key_t::HARDWARE_ERROR;
-                _sense_fixed_response.add_sense_code        = 0;
-                _sense_fixed_response.add_sense_qualifier   = 0;
-                // Set the CSW status
-                _csw.bCSWStatus = MSC::csw_status_t::CMD_FAILED;
+                scsi_fail(SCSI::sense_key_t::NOT_READY, 0x3a, 0);
             }
             // Mark data as consumed and accept new packets
             _buffer_out_len = 0;
             _ep_out->send_NAK(false);
-            break;
-        }
-        case state_t::SEND_CSW: {
-            if (_ep_in->is_active()) {
-                // EP still active, so keep this state
-                // and wait for the EP to be usable...
-                break;
-            }
-            TUPP_LOG(LOG_DEBUG, "STATE: SEND_CSW");
-            _ep_in->start_transfer((uint8_t *)&_csw, sizeof(_csw));
-            // Continue with next CBW
-            _state = state_t::RECEIVE_CBW;
             break;
         }
     }
@@ -270,7 +281,7 @@ void usb_msc_bot_device::process_scsi_command() {
         }
         case SCSI::scsi_cmd_t::INQUIRY: {
             TUPP_LOG(LOG_INFO, "SCSI: INQUIRY");
-            assert(cbw->bCBWCBLength == sizeof(SCSI::inquiry_t));
+            //assert(cbw->bCBWCBLength == sizeof(SCSI::inquiry_t));
             _csw.dCSWDataResidue = cbw->dCBWDataTransferLength -
                                    sizeof(SCSI::inquiry_response_t);
             // Set response
@@ -303,11 +314,14 @@ void usb_msc_bot_device::process_scsi_command() {
                 _csw.bCSWStatus = MSC::csw_status_t::CMD_FAILED;
             }
             auto * ssu = (SCSI::start_stop_unit_t *)cbw->CBWCB;
+
+            TUPP_LOG(LOG_INFO, "%d %d %d", ssu->power_condition, ssu->start, ssu->loej);
+
             if (!ssu->start && ssu->loej) {
-                _device_ready = false;
+                //_device_ready = false;
             }
             if (start_stop_handler) {
-                start_stop_handler(ssu->start, ssu->loej);
+                start_stop_handler(ssu->power_condition, ssu->start, ssu->loej);
             }
             if (!_device_ready) {
                 _csw.bCSWStatus = MSC::csw_status_t::CMD_FAILED;
@@ -457,10 +471,6 @@ void usb_msc_bot_device::process_scsi_command() {
             break;
         }
     }
-
-//    if (!_device_ready) {
-//        _csw.bCSWStatus = MSC::csw_status_t::CMD_FAILED;
-//    }
 
     // Analyze response situation (no DATA transfers)
     if (_state == state_t::SEND_CSW) {

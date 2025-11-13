@@ -49,7 +49,7 @@ public:
     std::function<bool()> is_writeable_handler;
 
     // Callback handler to get the start/stop and eject state
-    std::function<void(bool start, bool load_eject)> start_stop_handler;
+    std::function<void(uint8_t power_condition, bool start, bool load_eject)> start_stop_handler;
 
     // Callback handler for the removable state
     std::function<void(bool prevent_removal)> remove_handler;
@@ -63,6 +63,10 @@ public:
     void set_device_ready(bool ready);
 
 private:
+
+    // Set sense keys depending on command success
+    void scsi_success();
+    void scsi_fail(SCSI::sense_key_t key, uint8_t code, uint8_t qualifier);
 
     enum class state_t : uint8_t {
         RECEIVE_CBW = 0,
