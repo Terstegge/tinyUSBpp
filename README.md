@@ -59,3 +59,4 @@ HID or audio are currently missing. The host side is missing completely.
 Still these missing parts will be hopefully added soon - driven by the
 needs of the users. tinyUSB++ code tries to be modular and readable, so
 hopefully extending the existing framework is not too complicated.
+ 
