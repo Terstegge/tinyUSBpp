@@ -193,9 +193,12 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
         case DESC_DEVICE: {
             TUPP_LOG(LOG_INFO, "Get device descriptor (len=%d)",
                      pkt->wLength);
-            assert(_device.descriptor.bLength <= pkt->wLength);
-            _ep0_in->start_transfer((uint8_t *) &_device.descriptor,
-                                    _device.descriptor.bLength);
+            // Sometimes the host wants to get only a fraction of
+            // the descriptor (on a MACbook len=8).
+            // So no strict check with assert(_device.descriptor.bLength <= pkt->wLength);
+            uint16_t len = _device.descriptor.bLength;
+            if (pkt->wLength < len) len = pkt->wLength;
+            _ep0_in->start_transfer((uint8_t *) &_device.descriptor, len);
             break;
         }
         case DESC_CONFIGURATION: {
