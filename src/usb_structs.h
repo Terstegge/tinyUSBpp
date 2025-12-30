@@ -150,6 +150,7 @@ namespace TUPP {
     };
 
     enum class bInterfaceSubClass_t : uint8_t {
+        IF_SUBCLASS_NONE = 0,
         CDC_INTERFACE_SUBCLASSES,
         MSC_INTERFACE_SUBCLASSES
     };

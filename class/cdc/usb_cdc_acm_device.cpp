@@ -89,7 +89,7 @@ usb_cdc_acm_device::usb_cdc_acm_device(
             bool b = _received_data.put(buf[i]);
             assert(b);
         }
-        // Trigger a new receive
+        // Trigger a new reception
         _ep_data_out->start_transfer(_buffer_out, _ep_data_out->descriptor.wMaxPacketSize);
     };
 
