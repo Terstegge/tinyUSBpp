@@ -43,6 +43,7 @@ usb_cdc_acm_device::usb_cdc_acm_device(
     _if_ctrl.set_bInterfaceClass   (IF_CLASS_CDC);
     _if_ctrl.set_bInterfaceSubClass(IF_SUBCLASS_ABSTRACT_CONTROL_MODEL);
     _if_ctrl.set_bInterfaceProtocol(IF_PROTOCOL_NONE);
+    _if_ctrl.set_InterfaceName     ("CDC-ACM UART Interface");
 
     _if_data.set_bInterfaceClass   (IF_CLASS_CDC_DATA);
     _if_data.set_bInterfaceProtocol(IF_PROTOCOL_NONE);
