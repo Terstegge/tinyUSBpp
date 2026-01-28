@@ -67,7 +67,7 @@ public:
 private:
     usb_dcd();
 
-    usb_endpoint_rp2350 * _endpoints[16][2];
+    usb_endpoint_rp2350 * _endpoints[16][2] {0};
 
     uint8_t             _new_addr;
     bool                _should_set_address;

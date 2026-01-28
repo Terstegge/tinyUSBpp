@@ -24,9 +24,7 @@
 #define usb_hw_set   ((usb_hw_t *)hw_set_alias_untyped(usb_hw))
 #define usb_hw_clear ((usb_hw_t *)hw_clear_alias_untyped(usb_hw))
 
-usb_dcd::usb_dcd()
-: _endpoints({nullptr},{nullptr}),
-  _new_addr(0), _should_set_address(false)
+usb_dcd::usb_dcd() : _new_addr(0), _should_set_address(false)
 {
     // Reset usb controller
     reset_block(RESETS_RESET_USBCTRL_BITS);
@@ -57,9 +55,6 @@ usb_dcd::usb_dcd()
     usb_hw_set->inte = USB_INTE_SETUP_REQ_BITS;
     usb_hw_set->inte = USB_INTE_BUS_RESET_BITS;
     usb_hw_set->inte = USB_INTE_BUFF_STATUS_BITS;
-
-    // Enable USB interrupt
-    irq_set_enabled(USBCTRL_IRQ, true);
 }
 
 void usb_dcd::pullup_enable(bool e) {
@@ -122,12 +117,16 @@ void isr_usbctrl(void) {
     // Setup packet received
     if (status & USB_INTS_SETUP_REQ_BITS) {
         usb_hw_clear->sie_status = USB_SIE_STATUS_SETUP_REC_BITS;
-        usb_dcd::inst().setup_handler((TUPP::setup_packet_t *)USBCTRL_DPRAM_BASE);
+        if (usb_dcd::inst().setup_handler) {
+            usb_dcd::inst().setup_handler((TUPP::setup_packet_t *)USBCTRL_DPRAM_BASE);
+        }
     }
     // Bus is reset
     if (status & USB_INTS_BUS_RESET_BITS) {
         usb_hw_clear->sie_status = USB_SIE_STATUS_BUS_RESET_BITS;
-        usb_dcd::inst().bus_reset_handler();
+        if (usb_dcd::inst().bus_reset_handler) {
+            usb_dcd::inst().bus_reset_handler();
+        }
     }
     // Buffer status, one or more buffers have completed
     if (status & USB_INTS_BUFF_STATUS_BITS) {

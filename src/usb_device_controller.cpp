@@ -167,6 +167,9 @@ usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_dev
             }
         }
     };
+
+    // Start DCD by enabling interrupts
+    _driver.irq_enable(true);
 }
 
 void usb_device_controller::handle_set_address(setup_packet_t * pkt) {

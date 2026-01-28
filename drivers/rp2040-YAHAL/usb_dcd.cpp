@@ -20,10 +20,7 @@
 using namespace _USBCTRL_REGS_;
 using namespace _RESETS_;
 
-usb_dcd::usb_dcd()
-: _endpoints({nullptr},{nullptr}),
-  _new_addr(0), _should_set_address(false)
-{
+usb_dcd::usb_dcd() : _new_addr(0), _should_set_address(false) {
     // Reset usb controller
     RESETS_SET.RESET.usbctrl <<= 1;
     RESETS_CLR.RESET.usbctrl <<= 1;
@@ -54,10 +51,6 @@ usb_dcd::usb_dcd()
     USBCTRL_REGS_SET.INTE.SETUP_REQ     <<= 1;
     USBCTRL_REGS_SET.INTE.BUS_RESET     <<= 1;
     USBCTRL_REGS_SET.INTE.BUFF_STATUS   <<= 1;
-
-    // Enable USB interrupt
-    NVIC_ClearPendingIRQ(USBCTRL_IRQ_IRQn);
-    NVIC_EnableIRQ(USBCTRL_IRQ_IRQn);
 }
 
 void usb_dcd::pullup_enable(bool e) {
@@ -66,6 +59,7 @@ void usb_dcd::pullup_enable(bool e) {
 
 void usb_dcd::irq_enable(bool e) {
     if (e) {
+        NVIC_ClearPendingIRQ(USBCTRL_IRQ_IRQn);
         NVIC_EnableIRQ(USBCTRL_IRQ_IRQn);
     } else {
         NVIC_DisableIRQ(USBCTRL_IRQ_IRQn);
@@ -122,12 +116,16 @@ void USBCTRL_IRQ_Handler(void) {
     // Setup packet received
     if (USBCTRL_REGS.INTS.SETUP_REQ) {
         USBCTRL_REGS_CLR.SIE_STATUS.SETUP_REC = 1;
-        usb_dcd::inst().setup_handler((TUPP::setup_packet_t *)&USBCTRL_DPRAM);
+        if (usb_dcd::inst().setup_handler) {
+            usb_dcd::inst().setup_handler((TUPP::setup_packet_t *)&USBCTRL_DPRAM);
+        }
     }
     // Bus is reset
     if (USBCTRL_REGS.INTS.BUS_RESET) {
         USBCTRL_REGS_CLR.SIE_STATUS.BUS_RESET = 1;
-        usb_dcd::inst().bus_reset_handler();
+        if (usb_dcd::inst().bus_reset_handler) {
+            usb_dcd::inst().bus_reset_handler();
+        }
     }
     // Buffer status, one or more buffers have completed
     if (USBCTRL_REGS.INTS.BUFF_STATUS) {

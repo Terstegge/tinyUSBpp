@@ -31,8 +31,7 @@ usb_endpoint::usb_endpoint(
         uint16_t packet_size,
         uint8_t interval,
         usb_interface *interface)
-: descriptor(_descriptor)
-{
+: descriptor(_descriptor) {
     // Set descriptor length
     _descriptor.bLength = sizeof(TUPP::endpoint_descriptor_t);
     // Set descriptor type
@@ -47,6 +46,7 @@ usb_endpoint::usb_endpoint(
 }
 
 void usb_endpoint::reset() {
+    TUPP_LOG(LOG_DEBUG, "reset()");
     send_stall(false);
     send_NAK(false);
     _active = false;
@@ -79,7 +79,10 @@ void usb_endpoint::start_transfer(uint8_t * buffer, uint16_t len) {
 }
 
 void usb_endpoint::handle_buffer_in(uint16_t) {
-    assert(_active);
+    if (!_active) {
+        TUPP_LOG(LOG_WARNING, "handle_buffer_in: Endpoint not active!");
+        return;
+    }
     // Entering this method means that the hw controller
     // has sent a packet of data to the host.
     // Check if we need to change the hw address
@@ -108,7 +111,10 @@ void usb_endpoint::handle_buffer_in(uint16_t) {
 }
 
 void usb_endpoint::handle_buffer_out(uint16_t len) {
-    assert(_active);
+    if (!_active) {
+        TUPP_LOG(LOG_WARNING, "handle_buffer_out: Endpoint not active!");
+        return;
+    }
     // Entering this method means that the host has sent us a
     // new data packet. Copy all received bytes to the user buffer.
     tupp_memcpy(_current_ptr, _hw_buffer, len);
