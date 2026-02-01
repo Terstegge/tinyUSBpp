@@ -25,11 +25,11 @@ public:
       _get_ptr(_buffer),
       _put_ptr(_buffer) {}
 
-    bool get(T & data) volatile {
+    bool get(T & data) {
         if (_get_ptr == _put_ptr) {
             return false;
         }
-        volatile T * nextget =  _get_ptr + 1;
+        T * nextget =  _get_ptr + 1;
         if (nextget == _need_wrap) {
             nextget =  _buffer;
         }
@@ -38,8 +38,8 @@ public:
         return true;
     }
 
-    bool put(const T & data) volatile {
-        volatile T * nextput =  _put_ptr + 1;
+    bool put(const T & data) {
+        T * nextput =  _put_ptr + 1;
         if (nextput == _need_wrap){
             nextput =  _buffer;
         }
@@ -71,10 +71,10 @@ public:
 
 private:
 
-    volatile T   _buffer[SIZE] {};
-    volatile T * _need_wrap;
-    volatile T * _get_ptr;
-    volatile T * _put_ptr;
+    T   _buffer[SIZE] {};
+    T * _need_wrap;
+    T * _get_ptr;
+    T * _put_ptr;
 };
 
 #endif // TUPP_USB_FIFO_H
