@@ -11,12 +11,15 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+#include <cassert>
+#include <cstring>
+
 #include "usb_strings.h"
 #include "usb_structs.h"
 #include "usb_log.h"
-#include <cassert>
-#include <cstring>
+
 using namespace TUPP;
+using enum usb_log::log_level;
 
 // The static singleton instance
 usb_strings usb_strings::inst;

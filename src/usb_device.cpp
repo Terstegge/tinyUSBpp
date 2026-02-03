@@ -11,11 +11,14 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#include "usb_device.h"
-#include "usb_configuration.h"
-#include "usb_strings.h"
 #include <cassert>
+
+#include "usb_configuration.h"
+#include "usb_device.h"
 #include "usb_log.h"
+#include "usb_strings.h"
+
+using enum usb_log::log_level;
 
 usb_device::usb_device()
 : descriptor(_descriptor), configurations(_configurations), bos(_bos),

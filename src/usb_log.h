@@ -20,8 +20,6 @@
 #ifndef TUPP_USB_LOG_H
 #define TUPP_USB_LOG_H
 
-enum log_level { LOG_OFF=0, LOG_ERROR=1, LOG_WARNING=2, LOG_INFO=3, LOG_DEBUG=4 };
-
 #define MAX_LINE_LENGTH 200
 
 #ifdef NDEBUG
@@ -34,6 +32,9 @@ enum log_level { LOG_OFF=0, LOG_ERROR=1, LOG_WARNING=2, LOG_INFO=3, LOG_DEBUG=4 
 
 class usb_log {
 public:
+    // The log levels
+    enum log_level { LOG_OFF=0, LOG_ERROR=1, LOG_WARNING=2, LOG_INFO=3, LOG_DEBUG=4 };
+
     // The logger is a singleton
     static usb_log inst;
     // Print a single log line. The format specifier

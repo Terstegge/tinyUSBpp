@@ -13,6 +13,9 @@
 //
 #include "usb_fd_acm.h"
 #include "usb_interface.h"
+#include "usb_log.h"
+
+using enum  usb_log::log_level;
 
 usb_fd_acm::usb_fd_acm(usb_interface & i)
         : usb_fd_base(i, (uint8_t *)&_descriptor, sizeof(_descriptor) )

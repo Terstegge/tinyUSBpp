@@ -11,10 +11,13 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+#include <cassert>
+
 #include "usb_log.h"
 #include "usb_ms_func_subset.h"
 #include "usb_ms_config_subset.h"
-#include <cassert>
+
+using enum usb_log::log_level;
 
 usb_ms_func_subset::usb_ms_func_subset(usb_ms_config_subset & config_subset)
 : descriptor{_descriptor}, _compat_id{nullptr}, _reg_props{}, _descriptor{}, _config_subset{config_subset}

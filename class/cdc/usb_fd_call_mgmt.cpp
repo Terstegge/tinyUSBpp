@@ -13,6 +13,9 @@
 //
 #include "usb_fd_call_mgmt.h"
 #include "usb_interface.h"
+#include "usb_log.h"
+
+using enum usb_log::log_level;
 
 usb_fd_call_mgmt::usb_fd_call_mgmt(usb_interface & i)
     : usb_fd_base(i, (uint8_t *)&_descriptor, sizeof(_descriptor) )

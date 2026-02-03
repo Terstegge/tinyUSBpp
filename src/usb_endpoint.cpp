@@ -13,6 +13,9 @@
 //
 #include "usb_endpoint.h"
 #include "usb_interface.h"
+#include "usb_log.h"
+
+using enum usb_log::log_level;
 
 #if (TUPP_USE_BYTEWISE_MEMCPY)
     // Use a simple version of memcpy to prevent unaligned accesses.

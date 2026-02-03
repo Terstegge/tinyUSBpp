@@ -11,10 +11,13 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+#include <cassert>
+
 #include "usb_log.h"
 #include "usb_ms_dev_cap_platform.h"
 #include "usb_ms_header.h"
-#include <cassert>
+
+using enum usb_log::log_level;
 
 usb_ms_header::usb_ms_header(usb_ms_dev_cap_platform & cap)
 : descriptor{_descriptor}, _config_subsets{}, _descriptor{}, _dev_cap_platform_ms{cap}

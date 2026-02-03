@@ -15,15 +15,18 @@
 #include "usb_configuration.h"
 #include "usb_interface.h"
 #include "usb_interface_association.h"
+#include "usb_log.h"
 #include "usb_strings.h"
 #include <cassert>
 
 using namespace TUPP;
+using enum usb_log::log_level;
 
 usb_configuration::usb_configuration(usb_device & device)
 : descriptor(_descriptor), interfaces(_interfaces),
  _descriptor{},           _interfaces{nullptr}, _associations{nullptr}
 {
+    TUPP_LOG(LOG_DEBUG, "usb_configuration() @%x", this);
     // Set descriptor length
     _descriptor.bLength = sizeof(configuration_descriptor_t);
     // Set descriptor type
@@ -35,14 +38,17 @@ usb_configuration::usb_configuration(usb_device & device)
 }
 
 void usb_configuration::set_Description(const char * n) {
+    TUPP_LOG(LOG_DEBUG, "set_Description(%s)", n);
     _descriptor.iConfiguration = usb_strings::inst.add_string(n);
 }
 
 void usb_configuration::set_remote_wakeup(bool b) {
+    TUPP_LOG(LOG_DEBUG, "set_remote_wakeup(%b)", b);
     _descriptor.bmAttributes.remote_wakeup = b;
 }
 
 void usb_configuration::set_total_length() {
+    TUPP_LOG(LOG_DEBUG, "set_total_length()");
     // Start with our own descriptor
     uint16_t len = sizeof(configuration_descriptor_t);
     // Add all interface associations
@@ -62,6 +68,7 @@ void usb_configuration::set_total_length() {
 }
 
 uint8_t usb_configuration::add_interface(usb_interface * interface) {
+    TUPP_LOG(LOG_DEBUG, "add_interface()");
     int i = 0;
     for (i = 0; i < TUPP_MAX_INTERF_PER_CONF; ++i) {
         if (!_interfaces[i]) {
@@ -79,6 +86,7 @@ uint8_t usb_configuration::add_interface(usb_interface * interface) {
 }
 
 void usb_configuration::add_interface_association(usb_interface_association * assoc) {
+    TUPP_LOG(LOG_DEBUG, "add_interface_association()");
     int i = 0;
     for (i = 0; i < 5; ++i) {
         if (!_associations[i]) {
@@ -91,6 +99,7 @@ void usb_configuration::add_interface_association(usb_interface_association * as
 }
 
 void usb_configuration::activate_endpoints(bool b) {
+    TUPP_LOG(LOG_DEBUG, "activate_endpoints(%b)", b);
     for (usb_interface *uif: _interfaces) {
         if (uif) uif->activate_endpoints(b);
     }

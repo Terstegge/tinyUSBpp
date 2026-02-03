@@ -16,9 +16,11 @@
 #ifndef TUPP_USB_FD_BASE_H
 #define TUPP_USB_FD_BASE_H
 
-class usb_interface;
 #include <cstdint>
 #include "usb_log.h"
+
+using enum usb_log::log_level;
+class usb_interface;
 
 class usb_fd_base {
 public:

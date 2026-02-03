@@ -15,6 +15,8 @@
 #include "usb_ms_compatible_ID.h"
 #include "usb_ms_func_subset.h"
 
+using enum usb_log::log_level;
+
 usb_ms_compatible_ID::usb_ms_compatible_ID(usb_ms_func_subset & func_subset)
 : descriptor{_descriptor}, _func_subset{func_subset}
 {

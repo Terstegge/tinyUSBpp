@@ -11,12 +11,13 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#include "usb_cdc_acm_device.h"
-#include "usb_structs.h"
-#include "usb_log.h"
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
+
+#include "usb_cdc_acm_device.h"
+#include "usb_structs.h"
+#include "usb_log.h"
 
 using namespace TUPP;
 using enum TUPP::bInterfaceClass_t;
@@ -24,6 +25,7 @@ using enum TUPP::bInterfaceSubClass_t;
 using enum TUPP::bInterfaceProtocol_t;
 using enum TUPP::ep_attributes_t;
 using enum TUPP::direction_t;
+using enum usb_log::log_level;
 
 usb_cdc_acm_device::usb_cdc_acm_device(
         usb_device_controller & controller,

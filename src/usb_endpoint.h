@@ -18,12 +18,14 @@
 #ifndef TUPP_USB_ENDPOINT_H
 #define TUPP_USB_ENDPOINT_H
 
-class usb_interface;
-#include "usb_structs.h"
-#include "usb_config.h"
 #include <cassert>
 #include <cstdint>
 #include <functional>
+
+#include "usb_structs.h"
+#include "usb_config.h"
+
+class usb_interface;
 
 class usb_endpoint {
 public:

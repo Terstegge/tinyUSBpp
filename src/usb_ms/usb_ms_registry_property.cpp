@@ -17,6 +17,7 @@
 #include "usb_strings.h"
 
 using namespace TUPP;
+using enum usb_log::log_level;
 
 #define REG_MULTI_SZ 7
 

@@ -14,13 +14,13 @@
 // This file implements a Mass Storage Class (MSC) device
 // in bulk-only-transfer (BOT) mode.
 //
-#include "usb_msc_bot_device.h"
-#include "usb_structs.h"
-#include "usb_log.h"
-
 #include <cassert>
 #include <cstring>
 #include <machine/endian.h>
+
+#include "usb_msc_bot_device.h"
+#include "usb_structs.h"
+#include "usb_log.h"
 
 using namespace TUPP;
 using enum TUPP::bInterfaceClass_t;
@@ -30,6 +30,7 @@ using enum TUPP::ep_attributes_t;
 using enum TUPP::direction_t;
 using enum SCSI::peripheral_device_type_t;
 using enum SCSI::peripheral_qualifier_type_t;
+using enum usb_log::log_level;
 
 usb_msc_bot_device::usb_msc_bot_device(
         usb_device_controller & controller,

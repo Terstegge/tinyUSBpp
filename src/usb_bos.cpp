@@ -11,17 +11,21 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#include "usb_bos.h"
-#include "usb_bos_dev_cap.h"
-#include "usb_device.h"
 #include <cassert>
 #include <cstring>
 
+#include "usb_bos.h"
+#include "usb_bos_dev_cap.h"
+#include "usb_device.h"
+#include "usb_log.h"
+
 using namespace TUPP;
+using enum usb_log::log_level;
 
 usb_bos::usb_bos(usb_device & device)
 : descriptor(_descriptor), _descriptor{}, _capabilities{nullptr}
 {
+    TUPP_LOG(LOG_DEBUG, "usb_bos() @%x", this);
     // Set descriptor length
     _descriptor.bLength = sizeof(bos_descriptor_t);
     // Set descriptor type
@@ -35,6 +39,7 @@ usb_bos::usb_bos(usb_device & device)
 }
 
 void usb_bos::add_capability(usb_bos_dev_cap * cap) {
+    TUPP_LOG(LOG_DEBUG, "usb_bos_dev_cap()");
     int i=0;
     // Find an empty slot
     for (i=0; i < TUPP_MAX_BOS_CAPABILITIES; ++i) {
@@ -51,6 +56,7 @@ void usb_bos::add_capability(usb_bos_dev_cap * cap) {
 }
 
 void usb_bos::set_total_length() {
+    TUPP_LOG(LOG_DEBUG, "set_total_length()");
     // Start with our own descriptor
     uint16_t len = sizeof(bos_descriptor_t);
     for(int i=0; i < _descriptor.bNumDeviceCaps; ++i) {
@@ -60,6 +66,7 @@ void usb_bos::set_total_length() {
 }
 
 uint16_t usb_bos::prepare_descriptor(uint8_t * buffer, uint16_t size) const {
+    TUPP_LOG(LOG_DEBUG, "prepare_descriptor(size=%d)", size);
     uint8_t * tmp_ptr = buffer;
     memcpy(tmp_ptr, &_descriptor, sizeof(TUPP::bos_descriptor_t));
     tmp_ptr += sizeof(TUPP::bos_descriptor_t);

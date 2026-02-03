@@ -11,9 +11,12 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+#include <cstring>
+
 #include "usb_ms_compat_descriptor.h"
 #include "usb_log.h"
-#include <cstring>
+
+using enum usb_log::log_level;
 
 #define GET_WEBUSB_URL  ((TUPP::bRequest_t)0x1)
 #define GET_WEBUSB_DESC ((TUPP::bRequest_t)0x2)

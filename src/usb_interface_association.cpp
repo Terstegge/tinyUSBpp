@@ -16,7 +16,9 @@
 #include "usb_configuration.h"
 #include "usb_strings.h"
 #include "usb_log.h"
+
 using namespace TUPP;
+using enum usb_log::log_level;
 
 usb_interface_association::usb_interface_association(usb_configuration & p)
     : descriptor(_descriptor), _parent(p), _descriptor{}

@@ -11,16 +11,19 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+#include <cassert>
+#include <cstring>
+
 #include "usb_interface.h"
 #include "usb_interface_association.h"
+#include "usb_log.h"
 #include "usb_configuration.h"
 #include "usb_endpoint.h"
 #include "usb_strings.h"
 #include "usb_fd_base.h"
-#include <cassert>
-#include <cstring>
 
 using namespace TUPP;
+using enum usb_log::log_level;
 
 usb_interface::usb_interface(usb_configuration & conf)
 :  descriptor(_descriptor), _parent(conf), _descriptor{},

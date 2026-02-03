@@ -13,7 +13,10 @@
 //
 #include "usb_fd_header.h"
 #include "usb_interface.h"
+#include "usb_log.h"
+
 using namespace TUPP::CDC;
+using enum usb_log::log_level;
 
 usb_fd_header::usb_fd_header(usb_interface & i)
     : usb_fd_base(i, (uint8_t *)&_descriptor, sizeof(_descriptor) )

@@ -16,9 +16,10 @@
 // requests are handled within this class, the device/interface/
 // endpoint-specific requests will be forwarded to the correct
 // destination.
+#include <cstring>
+#include <cassert>
 
 #include "usb_device_controller.h"
-
 #include "usb_structs.h"
 #include "usb_device.h"
 #include "usb_configuration.h"
@@ -29,15 +30,13 @@
 #include "usb_strings.h"
 #include "usb_log.h"
 
-#include <cstring>
-#include <cassert>
-
 using namespace TUPP;
 using enum TUPP::bRequest_t;
 using enum TUPP::bDescriptorType_t;
 using enum TUPP::recipient_t;
 using enum TUPP::ep_attributes_t;
 using enum TUPP::direction_t;
+using enum usb_log::log_level;
 
 usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_device & device)
     : active_configuration(_active_configuration), _driver(driver), _device(device)

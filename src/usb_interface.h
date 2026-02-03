@@ -14,6 +14,13 @@
 #ifndef TUPP_USB_INTERFACE_H
 #define TUPP_USB_INTERFACE_H
 
+#include <array>
+#include <functional>
+
+#include "usb_structs.h"
+#include "usb_config.h"
+#include "usb_log.h"
+
 // Forward declarations (to prevent
 // mutual inclusions of header files)
 class usb_configuration;
@@ -21,11 +28,7 @@ class usb_interface_association;
 class usb_endpoint;
 class usb_fd_base;
 
-#include "usb_structs.h"
-#include "usb_config.h"
-#include "usb_log.h"
-#include <array>
-#include <functional>
+using enum usb_log::log_level;
 
 class usb_interface {
 public:
