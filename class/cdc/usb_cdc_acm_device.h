@@ -60,10 +60,12 @@ public:
     // Send a serial state notification to this device.
     bool notify_serial_state(const TUPP::CDC::bmUartState_t & state);
 
-    // Callback handlers
+    // Callback handlers for UART format
     std::function<void(const CDC::line_coding_t & lc)>  line_coding_handler;
     std::function<void(bool dtr, bool rts)>             control_line_handler;
     std::function<void(uint16_t millis)>                break_handler;
+    // Callback handler when data has been received
+    std::function<void()> received_handler;
 
     // Read-only version of line coding information
     const CDC::line_coding_t & line_coding;
