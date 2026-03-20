@@ -26,7 +26,7 @@ usb_ms_func_subset::usb_ms_func_subset(usb_ms_config_subset & config_subset)
     // Set header values
     _descriptor.wLength             = sizeof(TUPP::ms_func_subset_header_t);
     _descriptor.wDescriptorType     = TUPP::wDescriptorType_t::DESC_FUNC_SUBSET;
-    _descriptor.bFirstInterface     = 1;
+    _descriptor.bFirstInterface     = 0;
     _descriptor.bReserved           = 0;
     inc_subset_length(sizeof(TUPP::ms_func_subset_header_t));
     _config_subset.add_ms_func_subset(this);
