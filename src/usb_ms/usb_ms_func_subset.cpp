@@ -32,6 +32,11 @@ usb_ms_func_subset::usb_ms_func_subset(usb_ms_config_subset & config_subset)
     _config_subset.add_ms_func_subset(this);
 }
 
+// Set first interface number
+void usb_ms_func_subset::set_bFirstInterface(uint8_t i) {
+    _descriptor.bFirstInterface = i;
+}
+
 // Add a compatibility ID
 void usb_ms_func_subset::add_compatible_ID(usb_ms_compatible_ID * compat_id) {
     TUPP_LOG(LOG_DEBUG, "add_compatible_ID()");

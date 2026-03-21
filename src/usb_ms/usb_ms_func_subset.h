@@ -34,6 +34,9 @@ public:
     usb_ms_func_subset(const usb_ms_func_subset &) = delete;
     usb_ms_func_subset & operator= (const usb_ms_func_subset &) = delete;
 
+    // Set first interface number
+    void set_bFirstInterface(uint8_t i);
+
     // Add a compatibility ID
     void add_compatible_ID(usb_ms_compatible_ID * compat_id);
 

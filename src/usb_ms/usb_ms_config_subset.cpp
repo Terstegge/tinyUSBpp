@@ -32,6 +32,13 @@ usb_ms_config_subset::usb_ms_config_subset(usb_ms_header & header)
     _ms_header.add_ms_config_subset(this);
 }
 
+// Set configuration value
+// Note: Although the configuration numbering is starting from 1,
+// this value is starting from 0 (so one less than the configuration number!)
+void usb_ms_config_subset::set_bConfigurationValue(uint8_t v) {
+    _descriptor.bConfigurationValue = v - 1;
+}
+
 // Add a capability
 void usb_ms_config_subset::add_ms_func_subset(usb_ms_func_subset * config_subset) {
     TUPP_LOG(LOG_DEBUG, "add_ms_func_subset()");

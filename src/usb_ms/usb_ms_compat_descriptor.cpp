@@ -23,6 +23,8 @@ using enum usb_log::log_level;
 
 usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
                                                    usb_device & dev,
+                                                   uint8_t configuration_value,
+                                                   uint8_t first_interface,
                                                    const char * URL)
 : _controller(ctrl), _device(dev), _bos(_device)
 {
@@ -52,6 +54,10 @@ usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
     _cap_platform.set_bAltEnumCode           ( 0 );
 
     _ms_header.set_dwWindowsVersion          ( win_version );
+
+    _ms_config_subset.set_bConfigurationValue( configuration_value );
+
+    _ms_func_subset.set_bFirstInterface      ( first_interface );
 
     _ms_compat_id.set_compatible_id          ( "WINUSB" );
     _ms_compat_id.set_sub_compatible_id      ( "" );
@@ -84,16 +90,6 @@ usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
             _controller._ep0_out->send_stall(true);
         }
     };
-
-//    printf("Header len %04x\n", ms_header.descriptor.wLength);
-//    printf("Header ttl %04x\n", ms_header.descriptor.wTotalLength);
-//    printf("Config len %04x\n", ms_config_subset.descriptor.wLength);
-//    printf("Config ttl %04x\n", ms_config_subset.descriptor.wTotalLength);
-//    printf("Func   len %04x\n", ms_func_subset.descriptor.wLength);
-//    printf("Func   sub %04x\n", ms_func_subset.descriptor.wSubsetLength);
-//    printf("Compat len %04x\n", ms_compat_id.descriptor.wLength);
-//    printf("Prop   len %04x\n", ms_reg_prop.get_length());
-
 }
 
 uint16_t usb_ms_compat_descriptor::prepare_descriptor() {

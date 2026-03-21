@@ -31,6 +31,11 @@ public:
     usb_ms_config_subset(const usb_ms_config_subset &) = delete;
     usb_ms_config_subset & operator= (const usb_ms_config_subset &) = delete;
 
+    // Set configuration value
+    // Note: Although the configuration numbering is starting from 1,
+    // this value is starting from 0 (so one less than the configuration number!)
+    void set_bConfigurationValue(uint8_t v);
+
     // Add a capability
     void add_ms_func_subset(usb_ms_func_subset * func_subset);
 

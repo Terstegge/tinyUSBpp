@@ -35,9 +35,11 @@
 class usb_ms_compat_descriptor {
 
 public:
-    explicit usb_ms_compat_descriptor(usb_device_controller & controller,
-                                      usb_device & device,
-                                      const char * URL = nullptr);
+    usb_ms_compat_descriptor(usb_device_controller & controller,
+                             usb_device & device,
+                             uint8_t configuration_value,
+                             uint8_t first_interface,
+                             const char * URL = nullptr);
 
 private:
     uint16_t prepare_descriptor();
