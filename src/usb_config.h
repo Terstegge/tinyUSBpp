@@ -76,9 +76,9 @@
 #define TUPP_MAX_MS_FUNC_SUBSETS 1
 #endif
 
-// Default number of registry properties
-#ifndef TUPP_MAX_MS_REG_PROP
-#define TUPP_MAX_MS_REG_PROP 1
+// Default number of features
+#ifndef TUPP_MAX_MS_FEATURES
+#define TUPP_MAX_MS_FEATURES 10
 #endif
 
 // Default size of CDC ACM FIFOs

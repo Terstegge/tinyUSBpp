@@ -14,45 +14,58 @@
 #ifndef TUPP_USB_MS_HEADER_H
 #define TUPP_USB_MS_HEADER_H
 
-// Forward declarations (to prevent
-// mutual inclusions of header files)
-class usb_ms_dev_cap_platform;
-class usb_ms_config_subset;
-
-#include "usb_ms_structs.h"
-#include "usb_config.h"
 #include <array>
+#include "usb_config.h"
+#include "usb_ms_config_subset.h"
+#include "usb_ms_feature.h"
+#include "usb_ms_parent.h"
+#include "usb_ms_structs.h"
 
-class usb_ms_header {
+class usb_ms_header : public usb_ms_parent, public usb_ms_feature {
 public:
-    explicit usb_ms_header(usb_ms_dev_cap_platform & cap);
+    usb_ms_header();
+
+    friend class usb_ms_compat_descriptor;
 
     // No copy, no assignment
     usb_ms_header(const usb_ms_header &) = delete;
     usb_ms_header & operator= (const usb_ms_header &) = delete;
 
-    void set_dwWindowsVersion(uint32_t ver) {
+    inline void set_dwWindowsVersion(uint32_t ver) {
         _descriptor.dwWindowsVersion = ver;
     }
 
-    // Add a capability
-    void add_ms_config_subset(usb_ms_config_subset * config_subset);
-
-    // Calculate the total length of the BOS descriptor
-    void inc_total_length(uint16_t inc);
+    // Add children
+    void add_ms_feature(usb_ms_feature & feature);
+    void add_ms_config_subset(usb_ms_config_subset & config_subset);
 
     // Read-only version of our descriptor
     const TUPP::ms_header_t & descriptor;
 
-    // Array of pointers to our device capabilities
-    std::array<usb_ms_config_subset *, TUPP_MAX_MS_CONFIG_SUBSETS> _config_subsets;
+    inline void update() override {
+        set_total_length();
+    }
+
+    inline uint8_t * get_descriptor() override {
+        return (uint8_t *)&_descriptor;
+    }
+    inline uint16_t get_descriptor_length() override {
+        return _descriptor.wLength;
+    }
+    inline void set_parent(usb_ms_parent * p) override {
+        _parent = p;
+    }
 
 private:
-    // The binary object store (BOS) descriptor
-    TUPP::ms_header_t _descriptor;
+    usb_ms_parent * _parent {nullptr};
 
-    // Parent
-    usb_ms_dev_cap_platform & _dev_cap_platform_ms;
+    void set_total_length();
+
+    // Child objects
+    std::array<usb_ms_feature *,       TUPP_MAX_MS_FEATURES> _features {nullptr};
+    std::array<usb_ms_config_subset *, TUPP_MAX_MS_CONFIG_SUBSETS> _config_subsets {nullptr};
+
+    TUPP::ms_header_t _descriptor;
 };
 
 #endif  // TUPP_USB_MS_HEADER_H

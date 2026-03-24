@@ -14,53 +14,57 @@
 #ifndef TUPP_USB_MS_FUNC_SUBSET_H
 #define TUPP_USB_MS_FUNC_SUBSET_H
 
-// Forward declarations (to prevent
-// mutual inclusions of header files)
-//class usb_ms_header;
-class usb_ms_config_subset;
-class usb_ms_compatible_ID;
-class usb_ms_registry_property;
-
-#include "usb_ms_func_subset.h"
-#include "usb_ms_structs.h"
-#include "usb_config.h"
 #include <array>
 
-class usb_ms_func_subset {
+#include "usb_config.h"
+#include "usb_ms_feature.h"
+#include "usb_ms_parent.h"
+#include "usb_ms_structs.h"
+
+class usb_ms_func_subset : public usb_ms_parent, public usb_ms_feature {
 public:
-    explicit usb_ms_func_subset(usb_ms_config_subset & config_subset);
+    usb_ms_func_subset();
+
+    friend class usb_ms_compat_descriptor;
 
     // No copy, no assignment
     usb_ms_func_subset(const usb_ms_func_subset &) = delete;
     usb_ms_func_subset & operator= (const usb_ms_func_subset &) = delete;
 
     // Set first interface number
-    void set_bFirstInterface(uint8_t i);
+    inline void set_bFirstInterface(uint8_t i) {
+        _descriptor.bFirstInterface = i;
+    }
 
-    // Add a compatibility ID
-    void add_compatible_ID(usb_ms_compatible_ID * compat_id);
-
-    // Add a registry property
-    void add_registry_property(usb_ms_registry_property * reg_prop);
-
-    // Calculate the total length of the BOS descriptor
-    void inc_subset_length(uint16_t inc);
+    // Add a feature
+    void add_ms_feature(usb_ms_feature & feature);
 
     // Read-only version of our descriptor
     const TUPP::ms_func_subset_header_t & descriptor;
 
-    // Array of pointers to our device capabilities
-    usb_ms_compatible_ID *  _compat_id;
-    std::array<usb_ms_registry_property *, TUPP_MAX_MS_REG_PROP> _reg_props;
+    inline void update() override {
+        set_total_length();
+    }
+
+    inline uint8_t * get_descriptor() override {
+        return (uint8_t *)&_descriptor;
+    }
+    inline uint16_t get_descriptor_length() override {
+        return _descriptor.wLength;
+    }
+    inline void set_parent(usb_ms_parent * p) override {
+        _parent = p;
+    }
 
 private:
-    // The binary object store (BOS) descriptor
+    usb_ms_parent * _parent {nullptr};
+
+    void set_total_length();
+
+    // Child objects
+    std::array<usb_ms_feature *, TUPP_MAX_MS_FEATURES> _features {};
+
     TUPP::ms_func_subset_header_t _descriptor;
-
-    // Parent
-    usb_ms_config_subset & _config_subset;
-
-
 };
 
 #endif  // TUPP_USB_MS_FUNC_SUBSET_H

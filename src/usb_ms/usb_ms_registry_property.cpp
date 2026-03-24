@@ -11,6 +11,8 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+#include <cassert>
+
 #include "usb_log.h"
 #include "usb_ms_registry_property.h"
 #include "usb_ms_func_subset.h"
@@ -19,48 +21,46 @@
 using namespace TUPP;
 using enum usb_log::log_level;
 
-#define REG_MULTI_SZ 7
-
-usb_ms_registry_property::usb_ms_registry_property(usb_ms_func_subset & func_subset)
-: _func_subset(func_subset), _desc_buffer{0}, _next_free_byte{_desc_buffer}
-{
+usb_ms_registry_property::usb_ms_registry_property(){
     TUPP_LOG(LOG_DEBUG, "usb_ms_registry_property() @%x", this);
     // Set header values
-    descriptor()->wLength           = sizeof(TUPP::ms_reg_prop_header_t);
-    descriptor()->wDescriptorType   = TUPP::wDescriptorType_t::DESC_REG_PROP;
-    descriptor()->wPropertyDataType = REG_MULTI_SZ;
+    descriptor()->wDescriptorType   = TUPP::wDescriptorType_t::DESC_FEATURE_REG_PROPERTY;
+    descriptor()->wPropertyDataType = wPropertyDataType_t::REG_MULTI_SZ;
+    // Update the descriptor size
     _next_free_byte += sizeof(TUPP::ms_reg_prop_header_t);
-    _func_subset.add_registry_property(this);
+    set_length();
 }
 
-void usb_ms_registry_property::add_property_name(const char * name) {
-    TUPP_LOG(LOG_DEBUG, "add_property_name(%s)", name);
+void usb_ms_registry_property::add_string(const char * s) {
+    TUPP_LOG(LOG_DEBUG, "add_string(%s)", s);
     // Prepare the string as UTF16 (PropertyName)
-    uint16_t len = usb_strings::inst.convert_to_utf16(name, _next_free_byte + 2);
+    uint16_t len = usb_strings::inst.convert_to_utf16(s, _next_free_byte + 2);
+    // Check buffer
+    assert((_next_free_byte + len + 2) < (_desc_buffer + TUPP_MS_REG_PROP_SIZE));
     // Store wPropertyNameLength
     _next_free_byte[0] = len & 0xff;
     _next_free_byte[1] = len >> 8;
     // Update the pointer to next free byte
     _next_free_byte += (len+2);
     // Update descriptor length
-    inc_length(len+2);
+    set_length();
 }
 
-void usb_ms_registry_property::add_property_value(const char * value) {
-    TUPP_LOG(LOG_DEBUG, "add_property_value(%s)", value);
-    // Prepare the string as UTF16
-    usb_strings::inst.convert_to_utf16(value, _next_free_byte + 2);
-    // Store the length
-    _next_free_byte[0] = 0x50;
-    _next_free_byte[1] = 0x00;
+void usb_ms_registry_property::add_end_marker() {
+    TUPP_LOG(LOG_DEBUG, "add_end_marker()");
+    // Check buffer
+    assert((_next_free_byte + 2) < (_desc_buffer + TUPP_MS_REG_PROP_SIZE));
+    // Add a terminating 0 at the end of the buffer
+    _next_free_byte[0] = 0;
+    _next_free_byte[1] = 0;
     // Update the pointer to next free byte
-    _next_free_byte += (0x50 + 2);
+    _next_free_byte += 2;
     // Update descriptor length
-    inc_length(0x50 + 2);
+    set_length();
 }
 
-void usb_ms_registry_property::inc_length(uint16_t inc) {
-    TUPP_LOG(LOG_DEBUG, "inc_length(%d)", inc);
-    descriptor()->wLength += inc;
-    _func_subset.inc_subset_length(inc);
+void usb_ms_registry_property::set_length() {
+    TUPP_LOG(LOG_DEBUG, "set_length(%d)");
+    descriptor()->wLength = get_descriptor_length();
+    if (_parent) _parent->update();
 }

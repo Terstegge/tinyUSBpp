@@ -11,24 +11,19 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-// This class serves as a virtual base class
-// for various device capability descriptors
+// Interface for all features in a descriptor tree
 //
-#ifndef TUPP_USB_BOS_DEV_CAP_H
-#define TUPP_USB_BOS_DEV_CAP_H
+#ifndef TUPP_USB_FEATURE_H
+#define TUPP_USB_FEATURE_H
 
-#include "usb_structs.h"
+#include <cstdint>
+#include "usb_ms_parent.h"
 
-class usb_bos_dev_cap {
+class usb_ms_feature {
 public:
-    usb_bos_dev_cap() = default;
-
-    // No copy, no assignment
-    usb_bos_dev_cap(const usb_bos_dev_cap &) = delete;
-    usb_bos_dev_cap & operator= (const usb_bos_dev_cap &) = delete;
-
-    virtual uint16_t    get_bLength()  = 0;
-    virtual uint8_t *   get_desc_ptr() = 0;
+    virtual uint8_t * get_descriptor() = 0;
+    virtual uint16_t  get_descriptor_length() = 0;
+    virtual void      set_parent(usb_ms_parent *) = 0;
 };
 
-#endif  // TUPP_USB_BOS_DEV_CAP_H
+#endif // TUPP_USB_FEATURE_H

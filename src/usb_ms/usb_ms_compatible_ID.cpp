@@ -11,19 +11,28 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#include "usb_log.h"
 #include "usb_ms_compatible_ID.h"
-#include "usb_ms_func_subset.h"
+#include "usb_log.h"
 
 using enum usb_log::log_level;
 
-usb_ms_compatible_ID::usb_ms_compatible_ID(usb_ms_func_subset & func_subset)
-: descriptor{_descriptor}, _func_subset{func_subset}
-{
+usb_ms_compatible_ID::usb_ms_compatible_ID() : descriptor{_descriptor} {
     TUPP_LOG(LOG_DEBUG, "usb_ms_compatible_ID() @%x", this);
     // Set header values
-    _descriptor.wLength             = sizeof(TUPP::ms_compat_id_header_t);
-    _descriptor.wDescriptorType     = TUPP::wDescriptorType_t::DESC_COMPAT_ID;
-    _func_subset.add_compatible_ID(this);
+    _descriptor.wLength         = sizeof(TUPP::ms_compat_id_header_t);
+    _descriptor.wDescriptorType = TUPP::wDescriptorType_t::DESC_FEATURE_COMPAT_ID;
 }
 
+void usb_ms_compatible_ID::set_compatible_id(const char * str) {
+    TUPP_LOG(LOG_DEBUG, "set_compatible_id(%s)", str);
+    for(unsigned char & i : _descriptor.CompatibleID) {
+        i = *str ? *str++ : 0;
+    }
+}
+
+void usb_ms_compatible_ID::set_sub_compatible_id(const char * str) {
+    TUPP_LOG(LOG_DEBUG, "set_sub_compatible_id(%s)", str);
+    for(unsigned char & i : _descriptor.SubCompatibleID) {
+        i = *str ? *str++ : 0;
+    }
+}

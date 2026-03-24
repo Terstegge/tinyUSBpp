@@ -49,13 +49,13 @@ private:
 
     // The WebUSB descriptor structure, based on a BOS (Binary Object Storage)
     usb_bos                     _bos;
-//    usb_ms_dev_cap_webusb       _web_platform       {_bos};
-    usb_ms_dev_cap_platform     _cap_platform       {_bos};
-    usb_ms_header               _ms_header          {_cap_platform};
-    usb_ms_config_subset        _ms_config_subset   {_ms_header};
-    usb_ms_func_subset          _ms_func_subset     {_ms_config_subset};
-    usb_ms_compatible_ID        _ms_compat_id       {_ms_func_subset};
-    usb_ms_registry_property    _ms_reg_prop        {_ms_func_subset};
+//    usb_ms_dev_cap_webusb       _web_platform;
+    usb_ms_dev_cap_platform     _cap_platform;
+    usb_ms_header               _ms_header;
+    usb_ms_config_subset        _ms_config_subset;
+    usb_ms_func_subset          _ms_func_subset;
+    usb_ms_compatible_ID        _ms_compat_id;
+    usb_ms_registry_property    _ms_reg_prop;
 
     uint8_t _buffer[256] {0};
 };

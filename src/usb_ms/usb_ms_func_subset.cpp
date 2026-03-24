@@ -12,56 +12,45 @@
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include <cassert>
+#include <cstdlib>
 
-#include "usb_log.h"
 #include "usb_ms_func_subset.h"
-#include "usb_ms_config_subset.h"
-
+#include "usb_log.h"
 using enum usb_log::log_level;
 
-usb_ms_func_subset::usb_ms_func_subset(usb_ms_config_subset & config_subset)
-: descriptor{_descriptor}, _compat_id{nullptr}, _reg_props{}, _descriptor{}, _config_subset{config_subset}
+usb_ms_func_subset::usb_ms_func_subset()
+: descriptor{_descriptor}, _descriptor{}
 {
     TUPP_LOG(LOG_DEBUG, "usb_ms_func_subset() @%x", this);
     // Set header values
-    _descriptor.wLength             = sizeof(TUPP::ms_func_subset_header_t);
-    _descriptor.wDescriptorType     = TUPP::wDescriptorType_t::DESC_FUNC_SUBSET;
-    _descriptor.bFirstInterface     = 0;
-    _descriptor.bReserved           = 0;
-    inc_subset_length(sizeof(TUPP::ms_func_subset_header_t));
-    _config_subset.add_ms_func_subset(this);
-}
-
-// Set first interface number
-void usb_ms_func_subset::set_bFirstInterface(uint8_t i) {
-    _descriptor.bFirstInterface = i;
-}
-
-// Add a compatibility ID
-void usb_ms_func_subset::add_compatible_ID(usb_ms_compatible_ID * compat_id) {
-    TUPP_LOG(LOG_DEBUG, "add_compatible_ID()");
-    assert(!_compat_id);
-    _compat_id = compat_id;
-    inc_subset_length(sizeof(TUPP::ms_compat_id_header_t));
+    _descriptor.wLength  = sizeof(TUPP::ms_func_subset_header_t);
+    _descriptor.wDescriptorType = TUPP::wDescriptorType_t::DESC_SUBSET_FUNCTION;
+    set_total_length();
 }
 
 // Add a registry property
-void usb_ms_func_subset::add_registry_property(usb_ms_registry_property * reg_prop) {
+void usb_ms_func_subset::add_ms_feature(usb_ms_feature & feature) {
     TUPP_LOG(LOG_DEBUG, "add_registry_property()");
-    int i=0;
+    size_t i=0;
     // Find an empty slot
-    for (i=0; i < TUPP_MAX_MS_REG_PROP; ++i) {
-        if (!_reg_props[i]) {
-             _reg_props[i] = reg_prop;
-            inc_subset_length(sizeof(TUPP::ms_reg_prop_header_t));
+    for (i=0; i < _features.size(); ++i) {
+        if (!_features[i]) {
+             _features[i] = &feature;
             break;
         }
     }
-    assert(i != TUPP_MAX_MS_REG_PROP);
+    assert(i != TUPP_MAX_MS_FEATURES);
+    feature.set_parent(this);
+    set_total_length();
 }
 
-void usb_ms_func_subset::inc_subset_length(uint16_t inc) {
-    TUPP_LOG(LOG_DEBUG, "inc_subset_length(%d)", inc);
-    _descriptor.wSubsetLength += inc;
-    _config_subset.inc_total_length(inc);
+void usb_ms_func_subset::set_total_length() {
+    uint16_t res = _descriptor.wLength;
+    for (auto feature : _features) {
+        if (feature) {
+            res += feature->get_descriptor_length();
+        }
+    }
+    _descriptor.wSubsetLength = res;
+    if (_parent) _parent->update();
 }
