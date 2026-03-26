@@ -27,18 +27,18 @@ public:
         _descriptor.bDescriptorType     = TUPP::bDescriptorType_t::DESC_DEVICE_CAPABILITY;
         _descriptor.bDevCapabilityType  = TUPP::bDevCapabilityType_t::CAP_PLATFORM;
         _descriptor.bReserved           = 0;
-        bos.add_capability(this);
+        bos.add_capability(*this);
     }
 
     // No copy, no assignment
     usb_ms_dev_cap_webusb(const usb_ms_dev_cap_webusb &) = delete;
     usb_ms_dev_cap_webusb & operator= (const usb_ms_dev_cap_webusb &) = delete;
 
-    uint16_t get_bLength() override {
+    uint16_t get_bLength() const override {
         return _descriptor.bLength;
     }
 
-    uint8_t * get_desc_ptr() override {
+    uint8_t * get_desc_ptr() const override {
         return (uint8_t *)&descriptor;
     }
 

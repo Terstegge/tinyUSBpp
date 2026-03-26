@@ -37,7 +37,7 @@ public:
     usb_bos & operator= (const usb_bos &) = delete;
 
     // Add a capability to this BOS
-    void add_capability(usb_bos_dev_cap * cap);
+    void add_capability(const usb_bos_dev_cap & cap);
 
     // Calculate the total length of the BOS descriptor
     void set_total_length();
@@ -53,7 +53,7 @@ private:
     TUPP::bos_descriptor_t _descriptor;
 
     // Array of pointers to our device capabilities
-    std::array<usb_bos_dev_cap *, TUPP_MAX_BOS_CAPABILITIES> _capabilities;
+    std::array<const usb_bos_dev_cap *, TUPP_MAX_BOS_CAPABILITIES> _capabilities;
 };
 
 #endif  // TUPP_USB_BOS_H

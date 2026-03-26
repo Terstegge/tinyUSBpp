@@ -38,13 +38,13 @@ usb_bos::usb_bos(usb_device & device)
     device.add_bos(this);
 }
 
-void usb_bos::add_capability(usb_bos_dev_cap * cap) {
+void usb_bos::add_capability(const usb_bos_dev_cap & cap) {
     TUPP_LOG(LOG_DEBUG, "usb_bos_dev_cap()");
     int i=0;
     // Find an empty slot
     for (i=0; i < TUPP_MAX_BOS_CAPABILITIES; ++i) {
         if (!_capabilities[i]) {
-            _capabilities[i] = cap;
+             _capabilities[i] = &cap;
             break;
         }
     }

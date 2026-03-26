@@ -27,8 +27,8 @@ public:
     usb_bos_dev_cap(const usb_bos_dev_cap &) = delete;
     usb_bos_dev_cap & operator= (const usb_bos_dev_cap &) = delete;
 
-    virtual uint16_t    get_bLength()  = 0;
-    virtual uint8_t *   get_desc_ptr() = 0;
+    virtual uint16_t    get_bLength()  const  = 0;
+    virtual uint8_t *   get_desc_ptr() const  = 0;
 };
 
 #endif  // TUPP_USB_BOS_DEV_CAP_H

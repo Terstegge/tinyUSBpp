@@ -3,6 +3,7 @@ target_sources(${TUPP_TARGET} INTERFACE
         usb_ms_config_subset.cpp
         usb_ms_func_subset.cpp
         usb_ms_header.cpp
+        usb_ms_OS_20_capability.cpp
         usb_ms_registry_property.cpp
         usb_ms_compat_descriptor.cpp
 )

@@ -35,11 +35,11 @@ public:
     usb_ms_dev_cap_platform(const usb_ms_dev_cap_platform &) = delete;
     usb_ms_dev_cap_platform & operator= (const usb_ms_dev_cap_platform &) = delete;
 
-    uint16_t get_bLength() override {
+    uint16_t get_bLength() const override {
         return _descriptor.bLength;
     }
 
-    uint8_t * get_desc_ptr() override {
+    uint8_t * get_desc_ptr() const override {
         return (uint8_t *)&descriptor;
     }
 

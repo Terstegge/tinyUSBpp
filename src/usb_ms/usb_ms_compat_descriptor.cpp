@@ -57,7 +57,7 @@ usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
     _cap_platform.set_dwWindowsVersion       ( win_version );
     _cap_platform.set_bMS_VendorCode         ( GET_WEBUSB_DESC );
     _cap_platform.set_bAltEnumCode           ( 0 );
-    _bos.add_capability(&_cap_platform);
+    _bos.add_capability(_cap_platform);
 
     // Set up MS OS 2.0 descriptor set header,
     // specifying the relevant Windows version

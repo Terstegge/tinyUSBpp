@@ -26,6 +26,7 @@ public:
     usb_ms_header();
 
     friend class usb_ms_compat_descriptor;
+    friend class usb_ms_OS_20_capability;
 
     // No copy, no assignment
     usb_ms_header(const usb_ms_header &) = delete;
