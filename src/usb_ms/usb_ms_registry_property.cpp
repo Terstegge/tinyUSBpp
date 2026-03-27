@@ -24,8 +24,7 @@ using enum usb_log::log_level;
 usb_ms_registry_property::usb_ms_registry_property(){
     TUPP_LOG(LOG_DEBUG, "usb_ms_registry_property() @%x", this);
     // Set header values
-    descriptor()->wDescriptorType   = TUPP::wDescriptorType_t::DESC_FEATURE_REG_PROPERTY;
-    descriptor()->wPropertyDataType = wPropertyDataType_t::REG_MULTI_SZ;
+    descriptor()->wDescriptorType = TUPP::wDescriptorType_t::DESC_FEATURE_REG_PROPERTY;
     // Update the descriptor size
     _next_free_byte += sizeof(TUPP::ms_reg_prop_header_t);
     set_length();

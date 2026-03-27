@@ -28,6 +28,10 @@ public:
     usb_ms_registry_property(const usb_ms_registry_property &) = delete;
     usb_ms_registry_property & operator= (const usb_ms_registry_property &) = delete;
 
+    inline void set_wPropertyDataType_t(TUPP::wPropertyDataType_t t) {
+        descriptor()->wPropertyDataType = t;
+    }
+
     void add_string(const char * name);
     void add_end_marker();
 
