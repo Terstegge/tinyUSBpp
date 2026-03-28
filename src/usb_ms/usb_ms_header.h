@@ -16,17 +16,14 @@
 
 #include <array>
 #include "usb_config.h"
-#include "usb_ms_config_subset.h"
-#include "usb_ms_feature.h"
 #include "usb_ms_parent.h"
 #include "usb_ms_structs.h"
 
-class usb_ms_header : public usb_ms_parent, public usb_ms_feature {
+class usb_ms_header : public usb_ms_parent {
 public:
     usb_ms_header();
 
     friend class usb_ms_compat_descriptor;
-    friend class usb_ms_OS_20_capability;
 
     // No copy, no assignment
     usb_ms_header(const usb_ms_header &) = delete;
@@ -37,8 +34,7 @@ public:
     }
 
     // Add children
-    void add_ms_feature(usb_ms_feature & feature);
-    void add_ms_config_subset(usb_ms_config_subset & config_subset);
+    void add(usb_ms_descriptor_base & child);
 
     // Read-only version of our descriptor
     const TUPP::ms_header_t & descriptor;
@@ -47,27 +43,10 @@ public:
         set_total_length();
     }
 
-    inline uint8_t * get_descriptor() override {
-        return (uint8_t *)&_descriptor;
-    }
-    inline uint16_t get_descriptor_length() override {
-        return _descriptor.wLength;
-    }
-    inline void set_parent(usb_ms_parent * p) override {
-        _parent = p;
-    }
 
 private:
-    usb_ms_parent * _parent {nullptr};
-
     void set_total_length();
-
-    // Child objects
-    std::array<usb_ms_feature *,       TUPP_MAX_MS_FEATURES> _features {nullptr};
-    std::array<usb_ms_config_subset *, TUPP_MAX_MS_CONFIG_SUBSETS> _config_subsets {nullptr};
-
     TUPP::ms_header_t _descriptor;
 };
 
 #endif  // TUPP_USB_MS_HEADER_H
-

@@ -14,8 +14,6 @@
 #ifndef TUPP_USB_MS_DEV_CAP_PLATFORM_H
 #define TUPP_USB_MS_DEV_CAP_PLATFORM_H
 
-#include <cstdio>
-
 #include "usb_bos.h"
 #include "usb_bos_dev_cap.h"
 #include "usb_ms_header.h"
@@ -23,7 +21,7 @@
 
 class usb_ms_dev_cap_platform : public usb_bos_dev_cap, public usb_ms_parent {
 public:
-    usb_ms_dev_cap_platform() : descriptor(_descriptor) {
+    usb_ms_dev_cap_platform() : usb_ms_parent((uint8_t *)&_descriptor, sizeof(_descriptor)), descriptor(_descriptor) {
         _descriptor.bLength             = sizeof(TUPP::dev_cap_platform_ms_os_20_t);
         _descriptor.bDescriptorType     = TUPP::bDescriptorType_t::DESC_DEVICE_CAPABILITY;
         _descriptor.bDevCapabilityType  = TUPP::bDevCapabilityType_t::CAP_PLATFORM;

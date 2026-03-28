@@ -19,7 +19,8 @@
 using enum usb_log::log_level;
 
 usb_ms_config_subset::usb_ms_config_subset()
-: descriptor{_descriptor}
+: usb_ms_parent((uint8_t *)&_descriptor, sizeof(_descriptor)),
+  descriptor{_descriptor}
 {
     TUPP_LOG(LOG_DEBUG, "usb_ms_config_subset() @%x", this);
     // Set header values
@@ -28,46 +29,26 @@ usb_ms_config_subset::usb_ms_config_subset()
     set_total_length();
 }
 
-void usb_ms_config_subset::add_ms_feature(usb_ms_feature & feature) {
-    TUPP_LOG(LOG_DEBUG, "add_feature()");
+void usb_ms_config_subset::add(usb_ms_descriptor_base & child) {
+    TUPP_LOG(LOG_DEBUG, "add()");
     size_t i=0;
     // Find an empty slot
-    for (i=0; i < _features.size(); ++i) {
-        if (!_features[i]) {
-             _features[i] = &feature;
+    for (i=0; i < _children.size(); ++i) {
+        if (!_children[i]) {
+            _children[i] = &child;
             break;
         }
     }
-    assert(i != TUPP_MAX_MS_FEATURES);
-    feature.set_parent(this);
-    set_total_length();
-}
-
-void usb_ms_config_subset::add_ms_func_subset(usb_ms_func_subset & func_subset) {
-    TUPP_LOG(LOG_DEBUG, "add_functional_subset()");
-    size_t i=0;
-    // Find an empty slot
-    for (i=0; i < _func_subsets.size(); ++i) {
-        if (!_func_subsets[i]) {
-             _func_subsets[i] = &func_subset;
-            break;
-        }
-    }
-    assert(i != TUPP_MAX_MS_FUNC_SUBSETS);
-    func_subset.set_parent(this);
+    assert(i != TUPP_MAX_MS_CHILDREN);
+    child.set_parent(this);
     set_total_length();
 }
 
 void usb_ms_config_subset::set_total_length() {
     uint16_t res = _descriptor.wLength;
-    for (auto feature : _features) {
-        if (feature) {
-            res += feature->get_descriptor_length();
-        }
-    }
-    for (auto func_subset : _func_subsets) {
-        if (func_subset) {
-            res += func_subset->descriptor.wSubsetLength;
+    for (auto child : _children) {
+        if (child) {
+            res += child->desc_total_size();
         }
     }
     _descriptor.wTotalLength = res;

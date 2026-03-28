@@ -11,9 +11,8 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-#include <cstring>
-
 #include "usb_ms_compat_descriptor.h"
+#include "usb_strings.h"
 #include "usb_log.h"
 using enum usb_log::log_level;
 
@@ -52,7 +51,6 @@ usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
     // Set up MS OS 2.0 platform capability descriptor
     // and add it to our Binary Object Storage (BOS)
     //////////////////////////////////////////////////
-     printf("Set up cap platform\n");
     _cap_platform.set_PlatformCapabilityUUID ( uuid2 );
     _cap_platform.set_dwWindowsVersion       ( win_version );
     _cap_platform.set_bMS_VendorCode         ( GET_WEBUSB_DESC );
@@ -69,25 +67,25 @@ usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
     // specify the configuration value for this descriptor
     //////////////////////////////////////////////////////
     _ms_config_subset.set_bConfigurationValue( configuration_value );
-    _ms_header.add_ms_config_subset          (  _ms_config_subset  );
+    _ms_header.add( _ms_config_subset );
 
     // Set up MS OS 2.0 functional subset header, and add a
     // compatibility ID and a registry property
     ///////////////////////////////////////////////////////
     _ms_func_subset.set_bFirstInterface ( first_interface );
-    _ms_config_subset.add_ms_func_subset( _ms_func_subset );
+    _ms_config_subset.add( _ms_func_subset );
 
     // Add feature compatibility ID
     ///////////////////////////////
     _ms_compat_id.set_compatible_id     ( "WINUSB" );
     _ms_compat_id.set_sub_compatible_id ( "" );
-    _ms_func_subset.add_ms_feature      ( _ms_compat_id );
+    _ms_func_subset.add( _ms_compat_id );
 
     // Add feature registry property
     ////////////////////////////////
-    _ms_func_subset.add_ms_feature  ( _ms_reg_prop );
-    _ms_reg_prop.add_string         ( "DeviceInterfaceGUIDs" );
-    _ms_reg_prop.add_string         ( "{CDB3B5AD-293B-4663-AA36-1AAE46463776}" );
+    _ms_func_subset.add     ( _ms_reg_prop );
+    _ms_reg_prop.add_string ( "DeviceInterfaceGUIDs" );
+    _ms_reg_prop.add_string ( "{CDB3B5AD-293B-4663-AA36-1AAE46463776}" );
     _ms_reg_prop.add_end_marker();
 
 
@@ -129,57 +127,11 @@ usb_ms_compat_descriptor::usb_ms_compat_descriptor(usb_device_controller & ctrl,
 
 uint16_t usb_ms_compat_descriptor::prepare_descriptor() {
     TUPP_LOG(LOG_DEBUG, "prepare_descriptor()");
-
-    // Copy header descriptor
-    auto * tmp_ptr = _buffer;
-    memcpy(tmp_ptr, _ms_header.get_descriptor(),
-           _ms_header.get_descriptor_length());
-    tmp_ptr += _ms_header.get_descriptor_length();
-
-    // Copy all features below header
-    for (auto & feature : _ms_header._features) {
-        if (feature) {
-            memcpy(tmp_ptr, feature->get_descriptor(),
-                   feature->get_descriptor_length());
-            tmp_ptr += feature->get_descriptor_length();
-        }
+    _ms_header.desc_begin();
+    uint8_t * _buffer_ptr = _buffer;
+    size_t s = _ms_header.desc_total_size();
+    for (size_t i=0; i<s; ++i) {
+        *_buffer_ptr++ = _ms_header.desc_getNext();
     }
-
-    // Copy all config subsets below header
-    for (auto & config_subset : _ms_header._config_subsets) {
-        if (config_subset) {
-            memcpy(tmp_ptr, config_subset->get_descriptor(),
-                   config_subset->get_descriptor_length());
-            tmp_ptr += config_subset->get_descriptor_length();
-
-            // Copy all features below a config subset
-            for (auto & feature : config_subset->_features) {
-                if (feature) {
-                    memcpy(tmp_ptr, feature->get_descriptor(),
-                           feature->get_descriptor_length());
-                    tmp_ptr += feature->get_descriptor_length();
-                }
-            }
-
-            // Copy all functional subsets below a config subset
-            for (auto func_subset : config_subset->_func_subsets) {
-                if (func_subset) {
-                    memcpy(tmp_ptr, func_subset->get_descriptor(),
-                           func_subset->get_descriptor_length());
-                    tmp_ptr += func_subset->get_descriptor_length();
-
-                    // Copy all feature below a functional subset
-                    for (auto & feature : func_subset->_features) {
-                        if (feature) {
-                            memcpy(tmp_ptr, feature->get_descriptor(),
-                                   feature->get_descriptor_length());
-                            tmp_ptr += feature->get_descriptor_length();
-                        }
-                    }
-
-                }
-            }
-        }
-    }
-    return (tmp_ptr - _buffer);
+    return s;
 }

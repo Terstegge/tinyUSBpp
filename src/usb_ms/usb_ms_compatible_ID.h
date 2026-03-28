@@ -15,11 +15,11 @@
 #define TUPP_USB_MS_COMPATIBLE_ID_H
 
 #include "usb_config.h"
-#include "usb_ms_feature.h"
+#include "usb_ms_descriptor_base.h"
 #include "usb_ms_parent.h"
 #include "usb_ms_structs.h"
 
-class usb_ms_compatible_ID : public usb_ms_feature {
+class usb_ms_compatible_ID : public usb_ms_descriptor_base {
 public:
     usb_ms_compatible_ID();
 
@@ -33,19 +33,19 @@ public:
     // Read-only version of our descriptor
     const TUPP::ms_compat_id_header_t & descriptor;
 
-    inline uint8_t * get_descriptor() override {
-        return (uint8_t *)&_descriptor;
+    inline void desc_begin() override {
+        _descriptor_ptr = (uint8_t *)&_descriptor;
     }
-
-    inline uint16_t get_descriptor_length() override {
-        return _descriptor.wLength;
+    inline size_t desc_total_size() override {
+        return sizeof(TUPP::ms_compat_id_header_t );
     }
-
-    inline void set_parent(usb_ms_parent *) override {
+    inline uint8_t desc_getNext() override {
+        return *_descriptor_ptr++;
     }
 
 private:
-    TUPP::ms_compat_id_header_t  _descriptor;
+    TUPP::ms_compat_id_header_t _descriptor;
+    uint8_t * _descriptor_ptr {nullptr};
 };
 
 #endif  // TUPP_USB_MS_COMPATIBLE_ID_H

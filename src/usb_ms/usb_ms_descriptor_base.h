@@ -13,17 +13,29 @@
 //
 // Interface for all features in a descriptor tree
 //
-#ifndef TUPP_USB_FEATURE_H
-#define TUPP_USB_FEATURE_H
+#ifndef TUPP_USB_MS_DESCRIPTOR_BASE_H
+#define TUPP_USB_MS_DESCRIPTOR_BASE_H
 
 #include <cstdint>
-#include "usb_ms_parent.h"
+#include <cstddef>
+//#include "usb_ms_parent.h"
+class usb_ms_parent;
 
-class usb_ms_feature {
+class usb_ms_descriptor_base {
 public:
-    virtual uint8_t * get_descriptor() = 0;
-    virtual uint16_t  get_descriptor_length() = 0;
-    virtual void      set_parent(usb_ms_parent *) = 0;
+    // Set the parent of this descriptor
+    inline void set_parent(usb_ms_parent * p) {
+        _parent = p;
+    }
+
+    // Iterator interface to access the descriptor
+    // (including all sub-descriptors)
+    virtual void    desc_begin() = 0;
+    virtual size_t  desc_total_size() = 0;
+    virtual uint8_t desc_getNext() = 0;
+
+protected:
+    usb_ms_parent *_parent {nullptr};
 };
 
-#endif // TUPP_USB_FEATURE_H
+#endif // TUPP_USB_MS_DESCRIPTOR_BASE_H

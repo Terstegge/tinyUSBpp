@@ -15,12 +15,12 @@
 #define TUPP_USB_MS_REGISTRY_PROPERTY_H
 
 #include "usb_config.h"
-#include "usb_ms_feature.h"
+#include "usb_ms_descriptor_base.h"
 #include "usb_ms_func_subset.h"
 #include "usb_ms_parent.h"
 #include "usb_ms_structs.h"
 
-class usb_ms_registry_property : public usb_ms_feature {
+class usb_ms_registry_property : public usb_ms_descriptor_base {
 public:
     usb_ms_registry_property();
 
@@ -28,26 +28,25 @@ public:
     usb_ms_registry_property(const usb_ms_registry_property &) = delete;
     usb_ms_registry_property & operator= (const usb_ms_registry_property &) = delete;
 
-    inline void set_wPropertyDataType_t(TUPP::wPropertyDataType_t t) {
+    inline void set_wPropertyDataType(TUPP::wPropertyDataType_t t) {
         descriptor()->wPropertyDataType = t;
     }
 
     void add_string(const char * name);
     void add_end_marker();
 
-    inline uint8_t * get_descriptor() override {
-        return _desc_buffer;
+    // Methods from base interface
+    inline void desc_begin() override {
+        _descriptor_ptr = _desc_buffer;
     }
-    inline uint16_t get_descriptor_length() override {
+    inline size_t desc_total_size() override {
         return _next_free_byte - _desc_buffer;
     }
-    inline void set_parent(usb_ms_parent * p) override {
-        _parent = p;
+    inline uint8_t desc_getNext() override {
+        return *_descriptor_ptr++;
     }
 
 private:
-    usb_ms_parent * _parent {nullptr};
-
     inline TUPP::ms_reg_prop_header_t * descriptor() {
         return (TUPP::ms_reg_prop_header_t *)_desc_buffer;
     }
@@ -57,7 +56,7 @@ private:
     // The buffer to store this descriptor
     uint8_t     _desc_buffer[TUPP_MS_REG_PROP_SIZE] {0};
     uint8_t *   _next_free_byte {_desc_buffer};
+    uint8_t *   _descriptor_ptr {nullptr};
 };
 
 #endif  // TUPP_USB_MS_REGISTRY_PROPERTY_H
-

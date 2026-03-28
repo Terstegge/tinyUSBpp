@@ -16,9 +16,35 @@
 #ifndef TUPP_USB_PARENT_H
 #define TUPP_USB_PARENT_H
 
-class usb_ms_parent {
+#include <array>
+#include "usb_config.h"
+#include "usb_ms_descriptor_base.h"
+
+class usb_ms_parent : public usb_ms_descriptor_base {
 public:
+
+    usb_ms_parent(const uint8_t * descriptor,
+                  size_t descriptor_size);
+
     virtual void update() = 0;
+
+    // Implemented methods from base interface
+    void desc_begin() override;
+    size_t desc_total_size() override;
+    uint8_t desc_getNext() override;
+
+protected:
+    const uint8_t * const _descriptor;
+    const size_t          _descriptor_size;
+
+    size_t    _current_index{0};
+    size_t    _current_size {0};
+
+    bool      _in_children  {false};
+    size_t    _child_index  {0};
+
+    // Child objects
+    std::array<usb_ms_descriptor_base *, TUPP_MAX_MS_CHILDREN> _children{};
 };
 
 #endif // TUPP_USB_PARENT_H

@@ -11,6 +11,12 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+// This class represents a MS OS 2.0 capability descriptor.
+// It contains a public MS OS 2.0 header, which can be used
+// to set up an MS OS 2.0 compatible descriptor tree. It also
+// adds the USB request handler (see the .cpp file), which
+// will handle the related USB requests.
+//
 #ifndef USB_MS_OS_20_CAPABILITY_H
 #define USB_MS_OS_20_CAPABILITY_H
 
@@ -18,7 +24,6 @@
 #include "usb_device.h"
 #include "usb_bos_dev_cap.h"
 #include "usb_ms_parent.h"
-
 #include "usb_ms_header.h"
 #include "usb_ms_structs.h"
 

@@ -76,9 +76,9 @@
 #define TUPP_MAX_MS_FUNC_SUBSETS 1
 #endif
 
-// Default number of features
-#ifndef TUPP_MAX_MS_FEATURES
-#define TUPP_MAX_MS_FEATURES 10
+// Default number of children
+#ifndef TUPP_MAX_MS_CHILDREN
+#define TUPP_MAX_MS_CHILDREN 10
 #endif
 
 // Default size of CDC ACM FIFOs

@@ -20,7 +20,6 @@
 #include "usb_device_controller.h"
 #include "usb_bos.h"
 #include "usb_device.h"
-#include "usb_ms_dev_cap_webusb.h"
 #include "usb_ms_dev_cap_platform.h"
 #include "usb_ms_header.h"
 #include "usb_ms_func_subset.h"

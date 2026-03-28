@@ -60,6 +60,6 @@ void usb_ms_registry_property::add_end_marker() {
 
 void usb_ms_registry_property::set_length() {
     TUPP_LOG(LOG_DEBUG, "set_length(%d)");
-    descriptor()->wLength = get_descriptor_length();
+    descriptor()->wLength = desc_total_size();
     if (_parent) _parent->update();
 }
