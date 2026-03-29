@@ -11,7 +11,9 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-// Interface for all parent objects in the descriptor tree
+// Interface for all parent objects in the descriptor tree.
+// Contains an array of child descriptors and implements the
+// usb_ms_descriptor_base interface.
 //
 #ifndef TUPP_USB_PARENT_H
 #define TUPP_USB_PARENT_H
@@ -26,12 +28,20 @@ public:
     usb_ms_parent(const uint8_t * descriptor,
                   size_t descriptor_size);
 
+    // No copy, no assignment
+    usb_ms_parent(const usb_ms_parent &) = delete;
+    usb_ms_parent & operator= (const usb_ms_parent &) = delete;
+
+    void add(usb_ms_descriptor_base & child);
+
     virtual void update() = 0;
 
     // Implemented methods from base interface
     void desc_begin() override;
     size_t desc_total_size() override;
     uint8_t desc_getNext() override;
+
+    virtual void set_total_length() = 0;
 
 protected:
     const uint8_t * const _descriptor;

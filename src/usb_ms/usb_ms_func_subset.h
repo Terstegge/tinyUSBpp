@@ -14,9 +14,6 @@
 #ifndef TUPP_USB_MS_FUNC_SUBSET_H
 #define TUPP_USB_MS_FUNC_SUBSET_H
 
-#include <array>
-#include "usb_config.h"
-#include "usb_ms_descriptor_base.h"
 #include "usb_ms_parent.h"
 #include "usb_ms_structs.h"
 
@@ -35,18 +32,16 @@ public:
         _descriptor.bFirstInterface = i;
     }
 
-    // Add a feature
-    void add(usb_ms_descriptor_base & child);
-
     // Read-only version of our descriptor
     const TUPP::ms_func_subset_header_t & descriptor;
 
     inline void update() override {
-        set_total_length();
+        set_wSubsetLength();
     }
 
 private:
-    void set_total_length();
+    void set_total_length() override;
+    void set_wSubsetLength();
     TUPP::ms_func_subset_header_t _descriptor;
  };
 

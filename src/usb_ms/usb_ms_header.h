@@ -14,8 +14,6 @@
 #ifndef TUPP_USB_MS_HEADER_H
 #define TUPP_USB_MS_HEADER_H
 
-#include <array>
-#include "usb_config.h"
 #include "usb_ms_parent.h"
 #include "usb_ms_structs.h"
 
@@ -33,19 +31,16 @@ public:
         _descriptor.dwWindowsVersion = ver;
     }
 
-    // Add children
-    void add(usb_ms_descriptor_base & child);
-
     // Read-only version of our descriptor
     const TUPP::ms_header_t & descriptor;
 
     inline void update() override {
-        set_total_length();
+        set_wTotalLength();
     }
 
-
 private:
-    void set_total_length();
+    void set_total_length() override;
+    void set_wTotalLength();
     TUPP::ms_header_t _descriptor;
 };
 

@@ -15,11 +15,8 @@
 #define TUPP_USB_MS_CONFIG_SUBSET_H
 
 #include <array>
-#include "usb_config.h"
-#include "usb_ms_descriptor_base.h"
-#include "usb_ms_func_subset.h"
-#include "usb_ms_structs.h"
 #include "usb_ms_parent.h"
+#include "usb_ms_structs.h"
 
 class usb_ms_config_subset : public usb_ms_parent {
 public:
@@ -38,20 +35,18 @@ public:
         _descriptor.bConfigurationValue = v - 1;
     }
 
-    // Add children
-    void add(usb_ms_descriptor_base & feature);
-
     // Read-only version of our descriptor
     const TUPP::ms_config_subset_header_t & descriptor;
 
     // Methods from base interfaces
     inline void update() override {
-        set_total_length();
+        set_wTotalLength();
     }
 
 private:
-    void set_total_length();
-    TUPP::ms_config_subset_header_t   _descriptor;
+    void set_total_length() override;
+    void set_wTotalLength();
+    TUPP::ms_config_subset_header_t _descriptor;
 };
 
 #endif  // TUPP_USB_MS_CONFIG_SUBSET_H

@@ -11,20 +11,40 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+#include <cassert>
 #include "usb_ms_parent.h"
+#include "usb_log.h"
+using enum usb_log::log_level;
 
 usb_ms_parent::usb_ms_parent(const uint8_t * const descriptor,
                              const size_t descriptor_size)
 : _descriptor(descriptor), _descriptor_size(descriptor_size) { }
 
+void usb_ms_parent::add(usb_ms_descriptor_base & child) {
+    TUPP_LOG(LOG_DEBUG, "add_feature()");
+    size_t i=0;
+    // Find an empty slot
+    for (i=0; i < _children.size(); ++i) {
+        if (!_children[i]) {
+            _children[i] = &child;
+            break;
+        }
+    }
+    assert(i != TUPP_MAX_MS_CHILDREN);
+    child.set_parent(this);
+    set_total_length();
+}
+
 // Methods from base interface
 void usb_ms_parent::desc_begin() {
-    _current_index  = 0;
-    _current_size   = _descriptor_size;
-    _in_children    = false;
+    TUPP_LOG(LOG_DEBUG, "desc_begin()");
+    _current_index = 0;
+    _current_size = _descriptor_size;
+    _in_children = false;
 }
 
 size_t usb_ms_parent::desc_total_size() {
+    TUPP_LOG(LOG_DEBUG, "desc_total_size()");
     size_t res = _descriptor_size;
     for (auto child: _children) {
         if (child) res += child->desc_total_size();
@@ -33,6 +53,7 @@ size_t usb_ms_parent::desc_total_size() {
 }
 
 uint8_t usb_ms_parent::desc_getNext() {
+    TUPP_LOG(LOG_DEBUG, "desc_getNext()");
     if (!_in_children) {
         if (_current_index < _current_size) {
             return _descriptor[_current_index++];
@@ -56,5 +77,4 @@ uint8_t usb_ms_parent::desc_getNext() {
             return desc_getNext();
         }
     }
-    return 0;
 }

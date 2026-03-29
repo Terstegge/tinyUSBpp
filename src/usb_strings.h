@@ -19,6 +19,7 @@
 #define TUPP_USB_STRINGS_H
 
 #include "usb_config.h"
+#include "usb_ms_structs.h"
 #include <cstdint>
 #include <array>
 
@@ -48,6 +49,10 @@ public:
     // (the generated string is UTF8).
     // Returns the total length of the constructed descriptor.
     uint8_t prepare_string_desc_utf8(uint8_t index, uint8_t * buffer);
+
+    // Prepare a URL for WebUSB. Same as method above, but first
+    // character in string has a special meaning.
+    uint8_t prepare_url_utf8(uint8_t index, TUPP::URL_FORMAT fmt, uint8_t * buffer);
 
     // Set up a USB buffer so that it conforms to a USB standard
     // string descriptor. The string to process is selected by

@@ -13,10 +13,9 @@
 //
 #include "usb_ms_compatible_ID.h"
 #include "usb_log.h"
-
 using enum usb_log::log_level;
 
-usb_ms_compatible_ID::usb_ms_compatible_ID() : descriptor{_descriptor} {
+usb_ms_compatible_ID::usb_ms_compatible_ID() : descriptor(_descriptor) {
     TUPP_LOG(LOG_DEBUG, "usb_ms_compatible_ID() @%x", this);
     // Set header values
     _descriptor.wLength         = sizeof(TUPP::ms_compat_id_header_t);

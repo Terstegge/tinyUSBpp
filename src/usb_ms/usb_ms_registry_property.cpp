@@ -12,13 +12,10 @@
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
 #include <cassert>
-
-#include "usb_log.h"
 #include "usb_ms_registry_property.h"
-#include "usb_ms_func_subset.h"
+#include "usb_ms_parent.h"
 #include "usb_strings.h"
-
-using namespace TUPP;
+#include "usb_log.h"
 using enum usb_log::log_level;
 
 usb_ms_registry_property::usb_ms_registry_property(){
@@ -27,7 +24,7 @@ usb_ms_registry_property::usb_ms_registry_property(){
     descriptor()->wDescriptorType = TUPP::wDescriptorType_t::DESC_FEATURE_REG_PROPERTY;
     // Update the descriptor size
     _next_free_byte += sizeof(TUPP::ms_reg_prop_header_t);
-    set_length();
+    set_wLength();
 }
 
 void usb_ms_registry_property::add_string(const char * s) {
@@ -42,7 +39,7 @@ void usb_ms_registry_property::add_string(const char * s) {
     // Update the pointer to next free byte
     _next_free_byte += (len+2);
     // Update descriptor length
-    set_length();
+    set_wLength();
 }
 
 void usb_ms_registry_property::add_end_marker() {
@@ -55,10 +52,10 @@ void usb_ms_registry_property::add_end_marker() {
     // Update the pointer to next free byte
     _next_free_byte += 2;
     // Update descriptor length
-    set_length();
+    set_wLength();
 }
 
-void usb_ms_registry_property::set_length() {
+void usb_ms_registry_property::set_wLength() {
     TUPP_LOG(LOG_DEBUG, "set_length(%d)");
     descriptor()->wLength = desc_total_size();
     if (_parent) _parent->update();

@@ -16,8 +16,6 @@
 
 #include "usb_config.h"
 #include "usb_ms_descriptor_base.h"
-#include "usb_ms_func_subset.h"
-#include "usb_ms_parent.h"
 #include "usb_ms_structs.h"
 
 class usb_ms_registry_property : public usb_ms_descriptor_base {
@@ -51,7 +49,7 @@ private:
         return (TUPP::ms_reg_prop_header_t *)_desc_buffer;
     }
 
-    void set_length();
+    void set_wLength();
 
     // The buffer to store this descriptor
     uint8_t     _desc_buffer[TUPP_MS_REG_PROP_SIZE] {0};

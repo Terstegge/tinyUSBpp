@@ -14,9 +14,7 @@
 #ifndef TUPP_USB_MS_COMPATIBLE_ID_H
 #define TUPP_USB_MS_COMPATIBLE_ID_H
 
-#include "usb_config.h"
 #include "usb_ms_descriptor_base.h"
-#include "usb_ms_parent.h"
 #include "usb_ms_structs.h"
 
 class usb_ms_compatible_ID : public usb_ms_descriptor_base {

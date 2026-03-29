@@ -63,6 +63,24 @@ uint8_t usb_strings::prepare_string_desc_utf8(uint8_t index, uint8_t * buffer) {
     return bLength;
 }
 
+uint8_t usb_strings::prepare_url_utf8(uint8_t index, TUPP::URL_FORMAT fmt, uint8_t * buffer) {
+    TUPP_LOG(LOG_DEBUG, "prepare_url_utf8([%d] %d %s)", index, fmt, _strings[index]);
+    // Check parameter
+    if (index >= TUPP_MAX_STRINGS || !_strings[index]) return 0;
+    // Every ascii char takes 1 byte plus bLength and bDescriptorType
+    uint8_t bLength = strlen(_strings[index]);
+    bLength += 3;
+    // Store the descriptor length
+    *buffer++ = bLength;
+    // Store the descriptor type
+    *buffer++ = (uint8_t)bDescriptorType_t::DESC_STRING;
+    // Store the string in UTF8
+    *buffer++ = (uint8_t)fmt;
+    const char *str = _strings[index];
+    while (*str) *buffer++ = *str++;
+    return bLength;
+}
+
 uint8_t usb_strings::prepare_string_desc_utf16(uint8_t index, uint8_t * buffer) {
     TUPP_LOG(LOG_DEBUG, "prepare_string_desc_utf16([%d] %s)", index, _strings[index]);
     assert(_strings[index]);

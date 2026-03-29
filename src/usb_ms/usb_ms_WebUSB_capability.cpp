@@ -11,35 +11,32 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
-//
-#include "usb_ms_OS_20_capability.h"
+#include "usb_ms_WebUSB_capability.h"
 #include "usb_bos.h"
+#include "usb_strings.h"
 #include "usb_log.h"
 using enum usb_log::log_level;
+using enum TUPP::URL_FORMAT;
 
-usb_ms_OS_20_capability::usb_ms_OS_20_capability(usb_bos & bos)
-: usb_ms_parent((uint8_t *)&_descriptor, sizeof(_descriptor) ), descriptor(_descriptor)
+usb_ms_WebUSB_capability::usb_ms_WebUSB_capability(usb_bos & bos, TUPP::URL_FORMAT fmt, const char * url)
+: usb_ms_parent((uint8_t *)&_descriptor, sizeof(_descriptor)),
+  descriptor(_descriptor)
 {
-    TUPP_LOG(LOG_DEBUG, "usb_ms_OS_20_capability() @%x", this);
+    TUPP_LOG(LOG_DEBUG, "usb_ms_WebUSB_capability() @%x", this);
     // Set our capability descriptor
-    _descriptor.bLength             = sizeof(TUPP::dev_cap_platform_ms_os_20_t);
+    _descriptor.bLength             = sizeof(TUPP::dev_cap_platform_ms_webusb_t);
     _descriptor.bDescriptorType     = TUPP::bDescriptorType_t::DESC_DEVICE_CAPABILITY;
     _descriptor.bDevCapabilityType  = TUPP::bDevCapabilityType_t::CAP_PLATFORM;
     _descriptor.bReserved           = 0;
-    _descriptor.dwWindowsVersion    = TUPP::WIN_VER_81;
-    _descriptor.bMS_VendorCode      = TUPP::GET_MS_OS20_DESC;
-    _descriptor.bAltEnumCode        = 0;
+    _descriptor.bcdVersion          = 0x0100;
+    _descriptor.bVendorCode         = TUPP::GET_MS_WEBUSB;
+    _descriptor.iLandingPage        = usb_strings::inst.add_string(url);
 
     // Set the UUID
     for(size_t i=0; i < sizeof(_descriptor.PlatformCapabilityUUID); ++i) {
-        _descriptor.PlatformCapabilityUUID[i] = TUPP::UUID_ms_os_20[i];
+        _descriptor.PlatformCapabilityUUID[i] = TUPP::UUID_webusb[i];
     }
-    set_wMSOSDescriptorSetTotalLength();
 
-    // We are the parent of the MS OS 2.0 header
-    header.set_dwWindowsVersion(TUPP::WIN_VER_81);
-    header.set_parent(this);
-
-    // Set the header in the BOS descriptor
-    bos.set_ms_header(&header);
+    // Set the URL format in the BOS descriptor
+    bos.set_url_format(fmt);
 }
