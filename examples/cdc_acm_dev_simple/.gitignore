@@ -1,0 +1,11 @@
+**/DEBUG/
+**/Debug/
+**/debug/
+**/RELEASE/
+**/Release/
+**/release/
+**/BUILD/
+**/Build/
+**/build/
+**/.idea/
+**/cmake-build-debug/
