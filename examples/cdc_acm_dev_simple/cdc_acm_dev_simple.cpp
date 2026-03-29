@@ -15,13 +15,15 @@
 // simply echo every character. This can e.g. be
 // used for data throughput measurements.
 //
-#include <cctype>
-#include "pico/stdlib.h"
-
-#include "usb_dcd.h"
-#include "usb_device_controller.h"
-#include "usb_ms_compat_descriptor.h"
 #include "usb_cdc_acm_device.h"
+#include "usb_bos.h"
+#include "usb_dcd.h"
+#include "usb_device.h"
+#include "usb_device_controller.h"
+
+#include "usb_ms_OS_20_capability.h"
+#include "usb_ms_func_subset.h"
+#include "usb_ms_compatible_ID.h"
 
 int main() {
     // USB Device driver
@@ -39,9 +41,6 @@ int main() {
     device.set_Manufacturer   ("Dummy Manufacturer");
     device.set_Product        ("TinyUSB++ ACM Demo");
 
-    // USB BOS descriptor
-    usb_ms_compat_descriptor ms_compat(controller, device);
-
     // USB configuration descriptor
     usb_configuration config(device);
     config.set_bConfigurationValue(1);
@@ -52,6 +51,23 @@ int main() {
 
     // USB CDC ACM device
     usb_cdc_acm_device acm_device(controller, config);
+
+    // Add MS OS 2.0 descriptor
+    ///////////////////////////
+    usb_bos bos(controller, device); // Add a Binary Object Store
+    usb_ms_OS_20_capability ms_os20(bos);
+    bos.add_capability(ms_os20);
+
+    // This functional subset is only valid for a
+    // specific interface number, here the CDC Data interface
+    usb_ms_func_subset ms_func_subset;
+    ms_func_subset.set_bFirstInterface(acm_device.get_data_if_number());
+    ms_os20.header.add(ms_func_subset);
+
+    // CDC will use the WINUSB driver in Windows
+    usb_ms_compatible_ID compat_id;
+    compat_id.set_compatible_id( "WINUSB" );
+    ms_func_subset.add(compat_id);
 
     bool line_code_updated = false;
 

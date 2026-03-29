@@ -73,6 +73,14 @@ public:
     // Convert line coding into a readable string
     char * line_coding_2_str();
 
+    inline uint8_t get_ctrl_if_number() {
+        return _if_ctrl.descriptor.bInterfaceNumber;
+    }
+
+    inline uint8_t get_data_if_number() {
+        return _if_data.descriptor.bInterfaceNumber;
+    }
+
 private:
     // CDC ACM descriptor tree
     usb_configuration &         _configuration;
