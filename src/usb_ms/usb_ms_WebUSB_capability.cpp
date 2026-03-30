@@ -39,4 +39,7 @@ usb_ms_WebUSB_capability::usb_ms_WebUSB_capability(usb_bos & bos, TUPP::URL_FORM
 
     // Set the URL format in the BOS descriptor
     bos.set_url_format(fmt);
+
+    // Add this capability to the BOS
+    bos.add_capability(this);
 }

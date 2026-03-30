@@ -41,7 +41,7 @@ public:
     usb_bos & operator= (const usb_bos &) = delete;
 
     // Add a capability to this BOS
-    void add_capability(usb_ms_descriptor_base & cap);
+    void add_capability(usb_ms_descriptor_base * cap);
 
     // Calculate the total length of the BOS descriptor
     void set_total_length();

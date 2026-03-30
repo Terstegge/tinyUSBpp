@@ -81,13 +81,13 @@ usb_bos::usb_bos(usb_device_controller & controller, usb_device & device)
     };
 }
 
-void usb_bos::add_capability(usb_ms_descriptor_base & cap) {
+void usb_bos::add_capability(usb_ms_descriptor_base * cap) {
     TUPP_LOG(LOG_DEBUG, "usb_bos_dev_cap()");
     int i=0;
     // Find an empty slot
     for (i=0; i < TUPP_MAX_BOS_CAPABILITIES; ++i) {
         if (!_capabilities[i]) {
-             _capabilities[i] = &cap;
+             _capabilities[i] = cap;
             break;
         }
     }

@@ -42,4 +42,7 @@ usb_ms_OS_20_capability::usb_ms_OS_20_capability(usb_bos & bos)
 
     // Set the header in the BOS descriptor
     bos.set_ms_header(&header);
+
+    // Add this capability to the BOS
+    bos.add_capability(this);
 }
