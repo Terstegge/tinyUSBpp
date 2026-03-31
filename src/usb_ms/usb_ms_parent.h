@@ -32,7 +32,7 @@ public:
     usb_ms_parent(const usb_ms_parent &) = delete;
     usb_ms_parent & operator= (const usb_ms_parent &) = delete;
 
-    void add(usb_ms_descriptor_base & child);
+    void add(usb_ms_descriptor_base * child);
 
     virtual void update() = 0;
 

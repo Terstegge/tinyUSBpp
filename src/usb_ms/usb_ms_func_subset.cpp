@@ -15,7 +15,7 @@
 #include "usb_log.h"
 using enum usb_log::log_level;
 
-usb_ms_func_subset::usb_ms_func_subset()
+usb_ms_func_subset::usb_ms_func_subset(usb_ms_parent & parent)
 : usb_ms_parent((uint8_t *)&_descriptor, sizeof (_descriptor)),
   descriptor{_descriptor}
 {
@@ -24,6 +24,8 @@ usb_ms_func_subset::usb_ms_func_subset()
     _descriptor.wLength = sizeof(TUPP::ms_func_subset_header_t);
     _descriptor.wDescriptorType = TUPP::wDescriptorType_t::DESC_SUBSET_FUNCTION;
     set_wSubsetLength();
+    // Update parent
+    parent.add(this);
 }
 
 void usb_ms_func_subset::set_total_length() {

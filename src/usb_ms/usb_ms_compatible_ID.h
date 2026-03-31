@@ -14,12 +14,12 @@
 #ifndef TUPP_USB_MS_COMPATIBLE_ID_H
 #define TUPP_USB_MS_COMPATIBLE_ID_H
 
-#include "usb_ms_descriptor_base.h"
+#include "usb_ms_parent.h"
 #include "usb_ms_structs.h"
 
 class usb_ms_compatible_ID : public usb_ms_descriptor_base {
 public:
-    usb_ms_compatible_ID();
+    explicit usb_ms_compatible_ID(usb_ms_parent & parent);
 
     // No copy, no assignment
     usb_ms_compatible_ID(const usb_ms_compatible_ID &) = delete;

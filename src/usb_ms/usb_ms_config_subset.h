@@ -20,7 +20,7 @@
 
 class usb_ms_config_subset : public usb_ms_parent {
 public:
-    usb_ms_config_subset();
+    explicit usb_ms_config_subset(usb_ms_parent & parent);
 
     friend class usb_ms_compat_descriptor;
 

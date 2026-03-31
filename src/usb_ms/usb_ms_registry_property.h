@@ -15,12 +15,12 @@
 #define TUPP_USB_MS_REGISTRY_PROPERTY_H
 
 #include "usb_config.h"
-#include "usb_ms_descriptor_base.h"
+#include "usb_ms_parent.h"
 #include "usb_ms_structs.h"
 
 class usb_ms_registry_property : public usb_ms_descriptor_base {
 public:
-    usb_ms_registry_property();
+    explicit usb_ms_registry_property(usb_ms_parent & parent);
 
     // No copy, no assignment
     usb_ms_registry_property(const usb_ms_registry_property &) = delete;

@@ -20,18 +20,18 @@ usb_ms_parent::usb_ms_parent(const uint8_t * const descriptor,
                              const size_t descriptor_size)
 : _descriptor(descriptor), _descriptor_size(descriptor_size) { }
 
-void usb_ms_parent::add(usb_ms_descriptor_base & child) {
+void usb_ms_parent::add(usb_ms_descriptor_base * child) {
     TUPP_LOG(LOG_DEBUG, "add_feature()");
     size_t i=0;
     // Find an empty slot
     for (i=0; i < _children.size(); ++i) {
         if (!_children[i]) {
-            _children[i] = &child;
+            _children[i] = child;
             break;
         }
     }
     assert(i != TUPP_MAX_MS_CHILDREN);
-    child.set_parent(this);
+    child->set_parent(this);
     set_total_length();
 }
 
