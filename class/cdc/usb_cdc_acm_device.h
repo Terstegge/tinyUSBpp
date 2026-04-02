@@ -67,19 +67,21 @@ public:
     // Callback handler when data has been received
     std::function<void()> received_handler;
 
+    // Set the function name
+    inline void set_FunctionName(const char * n) {
+        _assoc.set_FunctionName(n);
+    }
+
     // Read-only version of line coding information
     const CDC::line_coding_t & line_coding;
 
+    // Read-only versions of USB descriptors
+    const usb_interface_association &   interface_association;
+    const usb_interface &   interface_control;
+    const usb_interface &   interface_data;
+
     // Convert line coding into a readable string
     char * line_coding_2_str();
-
-    inline uint8_t get_ctrl_if_number() {
-        return _if_ctrl.descriptor.bInterfaceNumber;
-    }
-
-    inline uint8_t get_data_if_number() {
-        return _if_data.descriptor.bInterfaceNumber;
-    }
 
 private:
     // CDC ACM descriptor tree

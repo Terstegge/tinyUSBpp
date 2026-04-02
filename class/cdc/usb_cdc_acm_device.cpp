@@ -30,7 +30,11 @@ using enum usb_log::log_level;
 usb_cdc_acm_device::usb_cdc_acm_device(
         usb_device_controller & controller,
         usb_configuration & configuration)
-: line_coding(_line_coding), _configuration(configuration)
+: line_coding(_line_coding),
+  interface_association(_assoc),
+  interface_control(_if_ctrl),
+  interface_data(_if_data),
+ _configuration(configuration)
 {
     TUPP_LOG(LOG_DEBUG, "usb_cdc_acm_device() @%x", this);
 
