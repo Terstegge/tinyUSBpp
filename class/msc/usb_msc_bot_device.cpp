@@ -118,7 +118,6 @@ usb_msc_bot_device::usb_msc_bot_device(
 }
 
 
-
 void usb_msc_bot_device::scsi_success() {
     // Set sense keys
     _sense_fixed_response.sense_key         = SCSI::sense_key_t::NO_SENSE;

@@ -56,18 +56,16 @@ int main() {
     ///////////////////////////
     usb_bos bos(controller, device); // Add a Binary Object Store
     usb_ms_OS_20_capability ms_os20(bos);
-    bos.add_capability(ms_os20);
 
     // This functional subset is only valid for a
     // specific interface number, here the CDC Data interface
-    usb_ms_func_subset ms_func_subset;
-    ms_func_subset.set_bFirstInterface(acm_device.get_data_if_number());
-    ms_os20.header.add(ms_func_subset);
+    usb_ms_func_subset ms_func_subset(ms_os20.header);
+    ms_func_subset.set_bFirstInterface(
+            acm_device.interface_data.descriptor.bInterfaceNumber);
 
     // CDC will use the WINUSB driver in Windows
-    usb_ms_compatible_ID compat_id;
+    usb_ms_compatible_ID compat_id(ms_func_subset);
     compat_id.set_compatible_id( "WINUSB" );
-    ms_func_subset.add(compat_id);
 
     bool line_code_updated = false;
 

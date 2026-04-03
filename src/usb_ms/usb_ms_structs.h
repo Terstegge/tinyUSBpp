@@ -27,15 +27,10 @@ namespace TUPP {
     // Code for Windows version 8.1 and newer
     constexpr uint32_t WIN_VER_81 = 0x06030000;
 
-    // Old MS OS 1.0 UUID {d8dd60df-4589-4cc7-9cd2-659d9e648a9f}
-    //            { 0xDF, 0x60, 0xDD, 0xD8, 0x89, 0x45, 0xC7, 0x4C,
-    //              0x9C, 0xD2, 0x65, 0x9D, 0x9E, 0x64, 0x8A, 0x9F };
-
-    // MS OS 2.0 Platform capability UUID {D8DD3967-0760-4150-A051-207F9A71BD49}
-    // Indicates that this device supports the MS OS 2.0 descriptor
     constexpr uint8_t UUID_ms_os_20[16] =
-            { 0x67, 0x39, 0xDD, 0xD8, 0x60, 0x07, 0x50, 0x41,
-              0xA0, 0x51, 0x20, 0x7F, 0x9A, 0x71, 0xBD, 0x49 };
+    // Old MS OS 1.0 UUID {d8dd60df-4589-4cc7-9cd2-659d9e648a9f}
+            { 0xDF, 0x60, 0xDD, 0xD8, 0x89, 0x45, 0xC7, 0x4C,
+              0x9C, 0xD2, 0x65, 0x9D, 0x9E, 0x64, 0x8A, 0x9F };
 
     // Platform capability UUID {3408B638-09A9-47A0-8BFD-A0768815B665}
     // Indicates that this device supports the WebUSB descriptor
