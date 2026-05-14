@@ -11,6 +11,7 @@
 // use library for USB host/device functionality.
 // (c) A. Terstegge  (Andreas.Terstegge@gmail.com)
 //
+#include "cpu_rp2350.h"
 #include "usb_dcd.h"
 #include "usb_endpoint_rp2350.h"
 #include "usb_log.h"
@@ -63,10 +64,10 @@ void usb_dcd::pullup_enable(bool e) {
 
 void usb_dcd::irq_enable(bool e) {
     if (e) {
-        NVIC_ClearPendingIRQ(USBCTRL_IRQ_IRQn);
-        NVIC_EnableIRQ(USBCTRL_IRQ_IRQn);
+        cpu_rp2350::clear_pending_peri_irq(USBCTRL_IRQ_IRQn);
+        cpu_rp2350::enable_peri_irq(USBCTRL_IRQ_IRQn);
     } else {
-        NVIC_DisableIRQ(USBCTRL_IRQ_IRQn);
+        cpu_rp2350::disable_peri_irq(USBCTRL_IRQ_IRQn);
     }
 }
 
