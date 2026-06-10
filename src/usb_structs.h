@@ -16,6 +16,7 @@
 
 #include "usb_cdc_defines.h"
 #include "usb_msc_defines.h"
+#include "usb_hid_defines.h"
 
 #include <cstdint>
 
@@ -37,7 +38,8 @@ namespace TUPP {
         REQ_SET_INTERFACE       = 11,
         REQ_SYNCH_FRAME         = 12,
         CDC_REQUESTS,
-        MSC_REQUESTS
+        MSC_REQUESTS,
+        HID_REQUESTS
     };
 
     enum class direction_t : uint8_t {
@@ -146,13 +148,15 @@ namespace TUPP {
         IF_CLASS_APPLICATION_SPECIFIC = 0xFE,
         IF_CLASS_VENDOR_SPECIFIC      = 0xFF,
         CDC_INTERFACE_CLASSES,
-        MSC_INTERFACE_CLASSES
+        MSC_INTERFACE_CLASSES,
+        HID_INTERFACE_CLASSES
     };
 
     enum class bInterfaceSubClass_t : uint8_t {
         IF_SUBCLASS_NONE = 0,
         CDC_INTERFACE_SUBCLASSES,
-        MSC_INTERFACE_SUBCLASSES
+        MSC_INTERFACE_SUBCLASSES,
+        HID_INTERFACE_SUBCLASSES
     };
 
     enum class bInterfaceProtocol_t : uint8_t {
@@ -160,7 +164,8 @@ namespace TUPP {
         IF_PROTOCOL_FROM_DESCRIPTOR    = 0xfe,
         IF_PROTOCOL_VENDOR_SPECIFIC    = 0xff,
         CDC_INTERFACE_PROTOCOLS,
-        MSC_INTERFACE_PROTOCOLS
+        MSC_INTERFACE_PROTOCOLS,
+        HID_INTERFACE_PROTOCOLS
     };
 
     struct __attribute__((__packed__)) interface_descriptor_t {
