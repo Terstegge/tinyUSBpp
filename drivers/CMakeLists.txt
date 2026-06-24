@@ -6,7 +6,12 @@ if (YAHAL_DIR)
                 INTERFACE ${YAHAL_DIR}/include/CPU/CMSIS
         )
     elseif (${YAHAL_MCU} STREQUAL "rp2350")
-        add_subdirectory(rp2350-YAHAL)
+        if (NOT TUPP_USE_HOST)
+            add_subdirectory(rp2350-YAHAL)
+        endif ()
+        if (TUPP_USE_HOST)
+            add_subdirectory(rp2350-YAHAL-host)
+        endif ()
         target_include_directories(${TUPP_TARGET}
                 INTERFACE ${YAHAL_DIR}/include/MCU/rp2350
                 INTERFACE ${YAHAL_DIR}/include/CPU/CMSIS
