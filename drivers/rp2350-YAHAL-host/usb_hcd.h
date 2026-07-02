@@ -70,6 +70,7 @@ private:
         std::function<void(uint8_t*, uint16_t)> data_handler;
     };
     int_ep_slot_t _int_eps[15];
+    uint32_t _saved_int_ep_ctrl {0};
 };
 
 #endif // TUPP_USB_HCD_H

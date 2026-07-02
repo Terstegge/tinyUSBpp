@@ -59,9 +59,9 @@ public:
 
         if (!_hcd.port_connected()) return false;
 
-        TUPP_LOG(LOG_INFO, "usb_host_enum: device detected, resetting bus");
-        _hcd.port_reset();
-        task::sleep_ms(50);
+        TUPP_LOG(LOG_INFO, "usb_host_enum: device detected, waiting for stability");
+        // No explicit bus reset needed - RP2350 hardware handles this automatically
+        task::sleep_ms(100);
 
         if (!_hcd.port_connected()) {
             TUPP_LOG(LOG_WARNING, "usb_host_enum: device disappeared during reset");
