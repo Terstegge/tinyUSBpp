@@ -34,6 +34,7 @@ public:
     }
 
     void port_reset() override;
+    void port_reset_end() override;
     bool port_connected() override;
     void assign_address(uint8_t addr) override;
     void irq_enable(bool e) override;
@@ -57,6 +58,7 @@ private:
     usb_hcd();
     std::function<void(hcd_xfer_result_t)> _xfer_complete_cb;
     uint8_t * _xfer_buffer;
+    uint16_t  _xfer_length {0};
 
     // Bookkeeping for the 15 hardware "interrupt endpoint" slots
     // (INT_EP_CTRL bits 1..15). These are auto-polled by hardware

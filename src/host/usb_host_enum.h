@@ -24,12 +24,13 @@
 #include "task.h"
 #include "usb_log.h"
 #include <cstring>
+#include <cstdio>
 #include <functional>
 
 // How long we wait for a control transfer to complete before giving
 // up. Without this, a non-responsive/disconnected device would hang
 // the whole system forever in the blocking wait loop.
-#define TUPP_HOST_XFER_TIMEOUT_MS 200
+#define TUPP_HOST_XFER_TIMEOUT_MS 500
 
 struct usb_host_found_endpoint_t {
     bool    found        {false};
@@ -56,12 +57,8 @@ public:
                    std::function<void(uint8_t*, uint16_t)> report_handler) {
         using enum usb_log::log_level;
         out_ep = {};
-
-        if (!_hcd.port_connected()) return false;
-
-        TUPP_LOG(LOG_INFO, "usb_host_enum: device detected, waiting for stability");
-        // No explicit bus reset needed - RP2350 hardware handles this automatically
-        task::sleep_ms(100);
+        TUPP_LOG(LOG_INFO, "usb_host_enum: device detected, no bus reset");
+        task::sleep_ms(200); // stability delay - give device time to be ready
 
         if (!_hcd.port_connected()) {
             TUPP_LOG(LOG_WARNING, "usb_host_enum: device disappeared during reset");
@@ -146,15 +143,31 @@ private:
     // Blocking helper with a timeout, so a non-responsive device can't
     // hang the whole system forever.
     bool do_control_xfer(uint8_t daddr, TUPP::setup_packet_t & req) {
-        bool done = false;
-        bool ok   = false;
+        volatile bool done = false;
+        volatile bool ok   = false;
         _hcd.control_xfer(daddr, req, _buffer,
             [&](hcd_xfer_result_t result) {
                 ok   = result.success;
                 done = true;
             });
+        printf("  after control_xfer: done=%d ok=%d\n", (int)done, (int)ok);
         uint32_t waited_ms = 0;
         while (!done && waited_ms < TUPP_HOST_XFER_TIMEOUT_MS) {
+            if (waited_ms % 20 == 0) {
+                printf("  waiting: INTS=0x%08lx SIE_STATUS=0x%08lx SIE_CTRL=0x%08lx\n",
+                       *((volatile uint32_t*)(0x50110000 + 0x98)),
+                       *((volatile uint32_t*)(0x50110000 + 0x50)),
+                       *((volatile uint32_t*)(0x50110000 + 0x4c)));
+            }
+            uint32_t _sie_st = *((volatile uint32_t*)(0x50110000 + 0x50));
+            printf("  poll raw SIE_STATUS=0x%08lx bit18=%d\n", _sie_st, (int)((_sie_st & 0x00040000u) != 0));
+            // Poll SIE_STATUS.TRANS_COMPLETE directly (bit 18 = 0x40000)
+            if (!done && (*((volatile uint32_t*)(0x50110000 + 0x50)) & 0x00040000u)) {
+                printf("  Poll: TRANS_COMPLETE detected!\n");
+                *((volatile uint32_t*)(0x50113000 + 0x50)) = 0x00040000u; // clear via CLR
+                ok   = true;
+                done = true;
+            }
             task::sleep_ms(1);
             waited_ms++;
         }
