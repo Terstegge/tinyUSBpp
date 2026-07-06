@@ -67,6 +67,7 @@ void usb_hcd::port_reset() {
 
 void usb_hcd::port_reset_end() {
     TUPP_LOG(LOG_INFO, "usb_hcd: port_reset_end()");
+    USB_SET.SIE_CTRL.KEEP_ALIVE_EN <<= 1; // maintain bus after reset
     USB_CLR.SIE_CTRL.RESET_BUS <<= 1;
 }
 

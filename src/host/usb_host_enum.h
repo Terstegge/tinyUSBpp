@@ -57,7 +57,10 @@ public:
                    std::function<void(uint8_t*, uint16_t)> report_handler) {
         using enum usb_log::log_level;
         out_ep = {};
-        TUPP_LOG(LOG_INFO, "usb_host_enum: device detected, no bus reset");
+        TUPP_LOG(LOG_INFO, "usb_host_enum: sending bus reset");
+        _hcd.port_reset();
+        task::sleep_ms(50); // hold reset 50ms (USB spec minimum)
+        _hcd.port_reset_end();
         task::sleep_ms(200); // stability delay - give device time to be ready
 
         if (!_hcd.port_connected()) {
