@@ -61,7 +61,7 @@ public:
         _hcd.port_reset();
         task::sleep_ms(50); // hold reset 50ms (USB spec minimum)
         _hcd.port_reset_end();
-        task::sleep_ms(200); // stability delay - give device time to be ready
+        task::sleep_ms(500); // extended stability delay after reset
 
         if (!_hcd.port_connected()) {
             TUPP_LOG(LOG_WARNING, "usb_host_enum: device disappeared during reset");

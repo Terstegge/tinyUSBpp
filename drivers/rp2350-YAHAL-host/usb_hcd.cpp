@@ -86,6 +86,8 @@ bool usb_hcd::control_xfer(uint8_t daddr,
     volatile uint8_t * dst = (volatile uint8_t *)&USB_DPRAM.SETUP_PACKET_LOW;
     const uint8_t    * src = (const uint8_t *)&request;
     for (int i = 0; i < 8; i++) dst[i] = src[i];
+    printf("  SETUP: %02x %02x %02x %02x %02x %02x %02x %02x\n",
+           dst[0],dst[1],dst[2],dst[3],dst[4],dst[5],dst[6],dst[7]);
     _xfer_buffer      = buffer;
     _xfer_complete_cb = complete_cb;
     _xfer_length      = request.wLength;
@@ -95,7 +97,10 @@ bool usb_hcd::control_xfer(uint8_t daddr,
     *((volatile uint32_t*)&USB_CLR.SIE_STATUS) = 0x00040000u;
     // Arm EP1 IN buffer with LAST_BUFF set (required for TRANS_COMPLETE!)
     *((volatile uint32_t*)&USB_DPRAM.EP1_OUT_BUFFER_CONTROL) = 0;
-    *((volatile uint32_t*)&USB_DPRAM.EP1_IN_BUFFER_CONTROL) = (1u<<14) | (1u<<10) | 64u; // LAST_0 | AVAILABLE_0 | LENGTH=64
+    *((volatile uint32_t*)&USB_DPRAM.EP0_IN_BUFFER_CONTROL) = (1u<<10) | 64u; // try EP0 instead of EP1 // LAST_0 | AVAILABLE_0 | LENGTH=64
+    printf("  EP1_IN_CTRL=0x%08lx EP1_IN_BUF=0x%08lx (after arm)\n",
+           *((volatile uint32_t*)(0x50100000 + 0x08)),
+           *((volatile uint32_t*)(0x50100000 + 0x88)));
     // Disable interrupt endpoints during EPX transfer (RP2350 silicon bug #3533)
     _saved_int_ep_ctrl = USB.INT_EP_CTRL;
     USB.INT_EP_CTRL = 0;
