@@ -21,21 +21,13 @@ usb_hcd::usb_hcd() : _xfer_buffer(nullptr) {
     USB_SET.USB_MUXING.TO_PHY  <<= 1;
     USB_SET.USB_PWR.VBUS_DETECT_OVERRIDE_EN <<= 1;
     USB_SET.USB_PWR.VBUS_DETECT             <<= 1;
+    USB_SET.SIE_CTRL.VBUS_EN <<= 1; // Enable VBUS drive (required for host to actually drive the bus!)
     USB_SET.MAIN_CTRL.CONTROLLER_EN <<= 1;
     USB_SET.MAIN_CTRL.HOST_NDEVICE  <<= 1;
     USB_CLR.MAIN_CTRL.PHY_ISO      <<= 1;
     USB_SET.SIE_CTRL.PULLDOWN_EN   <<= 1;
     USB_SET.SIE_CTRL.KEEP_ALIVE_EN <<= 1;
     USB_SET.SIE_CTRL.EP0_INT_1BUF  <<= 1;
-    uint16_t epx_offset = (uint16_t)(EPX_BUFFER - (uint8_t *)&USB_DPRAM);
-    USB_DPRAM.EP1_IN_CONTROL.ENABLE             = 1;
-    USB_DPRAM.EP1_IN_CONTROL.ENDPOINT_TYPE      = EP_CONTROL_ENDPOINT_TYPE__Control;
-    USB_DPRAM.EP1_IN_CONTROL.BUFFER_ADDRESS     = epx_offset;
-    USB_DPRAM.EP1_IN_CONTROL.INTERRUPT_PER_BUFF = 1;
-    USB_DPRAM.EP1_OUT_CONTROL.ENABLE             = 1;
-    USB_DPRAM.EP1_OUT_CONTROL.ENDPOINT_TYPE      = EP_CONTROL_ENDPOINT_TYPE__Control;
-    USB_DPRAM.EP1_OUT_CONTROL.BUFFER_ADDRESS     = epx_offset;
-    USB_DPRAM.EP1_OUT_CONTROL.INTERRUPT_PER_BUFF = 1;
     USB_SET.INTE.HOST_CONN_DIS   <<= 1;
     USB_SET.INTE.BUFF_STATUS     <<= 1;
     USB_SET.INTE.TRANS_COMPLETE  <<= 1;
@@ -93,14 +85,8 @@ bool usb_hcd::control_xfer(uint8_t daddr,
     _xfer_length      = request.wLength;
     // Clear transaction bits
     *((volatile uint32_t*)&USB_CLR.SIE_CTRL) = (1u<<1) | (1u<<2) | (1u<<6);
-    // Clear TRANS_COMPLETE
-    *((volatile uint32_t*)&USB_CLR.SIE_STATUS) = 0x00040000u;
-    // Arm EP1 IN buffer with LAST_BUFF set (required for TRANS_COMPLETE!)
-    *((volatile uint32_t*)&USB_DPRAM.EP1_OUT_BUFFER_CONTROL) = 0;
-    *((volatile uint32_t*)&USB_DPRAM.EP0_IN_BUFFER_CONTROL) = (1u<<10) | 64u; // try EP0 instead of EP1 // LAST_0 | AVAILABLE_0 | LENGTH=64
-    printf("  EP1_IN_CTRL=0x%08lx EP1_IN_BUF=0x%08lx (after arm)\n",
-           *((volatile uint32_t*)(0x50100000 + 0x08)),
-           *((volatile uint32_t*)(0x50100000 + 0x88)));
+    *((volatile uint32_t*)&USB_CLR.SIE_STATUS) = 0x00040000u; // Clear TRANS_COMPLETE
+    // NO buffer control for SETUP phase — tinyusb confirms SETUP uses only SETUP_PACKET_LOW/HIGH!
     // Disable interrupt endpoints during EPX transfer (RP2350 silicon bug #3533)
     _saved_int_ep_ctrl = USB.INT_EP_CTRL;
     USB.INT_EP_CTRL = 0;
@@ -109,8 +95,12 @@ bool usb_hcd::control_xfer(uint8_t daddr,
     sie |= (1u << 1); // SEND_SETUP
     if (USB.SIE_STATUS.SPEED == 1) sie |= (1u << 6); // PREAMBLE_EN
     *((volatile uint32_t*)&USB.SIE_CTRL) = sie;
-    for (volatile int i = 0; i < 12; i++);
+    asm volatile("dsb" ::: "memory"); // memory barrier instead of empty loop
     *((volatile uint32_t*)&USB.SIE_CTRL) = sie | (1u << 0); // START_TRANS
+    printf("  SIE_CTRL after START_TRANS=0x%08lx\n", *((volatile uint32_t*)&USB.SIE_CTRL));
+    printf("  EP1_OUT_BUF=0x%08lx EP1_IN_BUF=0x%08lx\n",
+           *((volatile uint32_t*)(0x50100000 + 0x8c)),
+           *((volatile uint32_t*)(0x50100000 + 0x88)));
     return true;
 }
 
@@ -186,10 +176,10 @@ void USBCTRL_IRQ_Handler(void) {
             *((volatile uint32_t*)&USB_DPRAM.EP1_IN_BUFFER_CONTROL) = buf_ctrl;
             // Trigger DATA IN
             uint32_t sie2 = *((volatile uint32_t*)&USB.SIE_CTRL);
-            sie2 |= (1u << 2); // RECEIVE_DATA
+            sie2 |= (1u << 3); // RECEIVE_DATA (bit 3, not 2!)
             if (USB.SIE_STATUS.SPEED == 1) sie2 |= (1u << 6); // PREAMBLE_EN
             *((volatile uint32_t*)&USB.SIE_CTRL) = sie2;
-            for (volatile int i = 0; i < 12; i++);
+            asm volatile("dsb" ::: "memory"); // memory barrier instead of empty loop
             *((volatile uint32_t*)&USB.SIE_CTRL) = sie2 | (1u << 0); // START_TRANS
         } else {
             // DATA phase done
