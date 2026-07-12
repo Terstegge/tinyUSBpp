@@ -95,7 +95,7 @@ bool usb_hcd::control_xfer(uint8_t daddr,
     sie |= (1u << 1); // SEND_SETUP
     if (USB.SIE_STATUS.SPEED == 1) sie |= (1u << 6); // PREAMBLE_EN
     *((volatile uint32_t*)&USB.SIE_CTRL) = sie;
-    asm volatile("dsb" ::: "memory"); // memory barrier instead of empty loop
+    __sync_synchronize(); // portable memory barrier (dsb on ARM, fence on RISC-V) // memory barrier instead of empty loop
     *((volatile uint32_t*)&USB.SIE_CTRL) = sie | (1u << 0); // START_TRANS
     printf("  SIE_CTRL after START_TRANS=0x%08lx\n", *((volatile uint32_t*)&USB.SIE_CTRL));
     printf("  EP1_OUT_BUF=0x%08lx EP1_IN_BUF=0x%08lx\n",
@@ -179,7 +179,7 @@ void USBCTRL_IRQ_Handler(void) {
             sie2 |= (1u << 3); // RECEIVE_DATA (bit 3, not 2!)
             if (USB.SIE_STATUS.SPEED == 1) sie2 |= (1u << 6); // PREAMBLE_EN
             *((volatile uint32_t*)&USB.SIE_CTRL) = sie2;
-            asm volatile("dsb" ::: "memory"); // memory barrier instead of empty loop
+            __sync_synchronize(); // portable memory barrier (dsb on ARM, fence on RISC-V) // memory barrier instead of empty loop
             *((volatile uint32_t*)&USB.SIE_CTRL) = sie2 | (1u << 0); // START_TRANS
         } else {
             // DATA phase done
