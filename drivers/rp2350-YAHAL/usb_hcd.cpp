@@ -16,7 +16,6 @@
 #include "usb_hcd.h"
 #include "usb_log.h"
 #include <cstring>
-#include <cstdio>
 
 using namespace _USB_;
 using namespace _RESETS_;
@@ -46,7 +45,6 @@ usb_hcd::usb_hcd() : _xfer_buffer(nullptr) {
     // disable the physical isolation (new for RP2350)
     USB_SET.MAIN_CTRL.HOST_NDEVICE <<= 1;
     USB_SET.MAIN_CTRL.CONTROLLER_EN <<= 1;
-    USB_SET.SIE_CTRL.VBUS_EN <<= 1; // Forward VBUS to device port (jumper on board)
     USB_CLR.MAIN_CTRL.PHY_ISO <<= 1;
 
     // Enable pulldown resistors
@@ -126,12 +124,11 @@ bool usb_hcd::control_xfer(uint8_t daddr,
     _xfer_buffer      = buffer;
     _xfer_complete_cb = complete_cb;
     _xfer_length      = request.wLength;
-    _xfer_stage = xfer_stage_t::SETUP; // reset stage for new transfer
 
     // Clear transaction control bits
     *((volatile uint32_t*)&USB_CLR.SIE_CTRL) = (1u<<1) | (1u<<2) | (1u<<6);
     // Clear TRANS_COMPLETE
-    *((volatile uint32_t*)&USB_CLR.SIE_STATUS) = 0xFFFFFFFFu; // clear ALL status bits before new transfer
+    *((volatile uint32_t*)&USB_CLR.SIE_STATUS) = 0x00040000u;
 
     // Arm EP0 IN buffer: LAST_BUFF=1, AVAILABLE=1, LENGTH=64
     // (LAST_BUFF is required for TRANS_COMPLETE to fire!)
@@ -201,83 +198,70 @@ usb_endpoint * usb_hcd::create_endpoint(
 
 extern "C" {
 void USBCTRL_IRQ_Handler(void) {
+    TUPP_LOG(LOG_DEBUG, "**** IRQ detected, %x", USB.INTS);
 
     if (USB.INTS.HOST_CONN_DIS) {
         auto speed = (uint8_t)USB.SIE_STATUS.SPEED;
-        *((volatile uint32_t*)&USB_CLR.SIE_STATUS) = 0x300u; // clear SPEED bits
+        USB_CLR.SIE_STATUS.SPEED = 0x3;
         if (speed != 0) {
             if (speed == 1) USB_SET.SIE_CTRL.KEEP_ALIVE_EN <<= 1;
             else            USB_SET.SIE_CTRL.SOF_EN <<= 1;
-            auto & ch = usb_hcd::inst().connect_handler; if (ch) ch();
+            if (usb_hcd::inst().connect_handler) usb_hcd::inst().connect_handler(speed);
         } else {
-            auto & dh = usb_hcd::inst().disconnect_handler; if (dh) dh();
-    // --- Transfer complete ---
+            if (usb_hcd::inst().disconnect_handler) usb_hcd::inst().disconnect_handler();
         }
     }
+
+    // --- Transfer complete (SETUP or DATA phase) ---
     if (USB.INTS.TRANS_COMPLETE) {
-        printf("TC\n");
-        *((volatile uint32_t*)&USB_CLR.SIE_STATUS) = 0x00040000u;
-        if (usb_hcd::inst()._xfer_stage == usb_hcd::xfer_stage_t::SETUP) {
-            // SETUP done - clear first, then arm buffer, then DATA IN
-            usb_hcd::inst()._xfer_stage = usb_hcd::xfer_stage_t::DATA;
+        USB.SIE_STATUS.TRANS_COMPLETE = 1;
+        if (USB.SIE_CTRL.SEND_SETUP) {
+            USB_DPRAM.EP0_IN_BUFFER_CONTROL.LENGTH_0 = 64;
+            USB_DPRAM.EP0_IN_BUFFER_CONTROL.PID_0    = 1;
+            USB_DPRAM.EP0_IN_BUFFER_CONTROL.LAST_0   = 1;
+            USB_DPRAM.EP0_IN_BUFFER_CONTROL.AVAILABLE_0 = 1;
+
+            // SEND_SETUP still set → SETUP phase done, start DATA IN phase
+            // Arm EP0 IN buffer: AVAILABLE=1, LENGTH=64, PID=DATA1, LAST_BUFF=1
+//            uint32_t buf_ctrl = (1u<<14) | (1u<<13) | (1u<<10) | 64u;
+//            *((volatile uint32_t*)&USB_DPRAM.EP0_IN_BUFFER_CONTROL) = buf_ctrl;
+            __DMB();
+            // Phase 1: Clear SEND_SETUP (must not change RECEIVE_DATA in same write)
             USB_CLR.SIE_CTRL.SEND_SETUP  <<= 1;
             USB_CLR.SIE_CTRL.START_TRANS <<= 1;
-            __DMB();
-            *((volatile uint32_t*)&USB_DPRAM.EP0_IN_BUFFER_CONTROL) = (1u<<14)|(1u<<13)|(1u<<10)|64u;
-            __DMB();
-            if (USB.SIE_STATUS.SPEED == 1) USB_SET.SIE_CTRL.PREAMBLE_EN <<= 1;
+            task::sleep_us(50);
+//            for (volatile int i = 0; i < 12; i++);
+            // Phase 2: Set RECEIVE_DATA (SEND_SETUP already 0, no conflict)
             USB_SET.SIE_CTRL.RECEIVE_DATA <<= 1;
-            USB_SET.SIE_CTRL.START_TRANS  <<= 1;
-        } else if (usb_hcd::inst()._xfer_stage == usb_hcd::xfer_stage_t::DATA) {
-            // DATA done → STATUS OUT
-            usb_hcd::inst()._xfer_stage = usb_hcd::xfer_stage_t::STATUS;
-            USB_DPRAM.EP1_OUT_BUFFER_CONTROL.LENGTH_0    = 0;
-        printf("D->S\n");
-            USB_DPRAM.EP1_OUT_BUFFER_CONTROL.PID_0       = 1;
-            USB_DPRAM.EP1_OUT_BUFFER_CONTROL.LAST_0      = 1;
-            USB_DPRAM.EP1_OUT_BUFFER_CONTROL.AVAILABLE_0 = 1;
-            __DMB();
-            USB_CLR.SIE_CTRL.RECEIVE_DATA <<= 1;
-            USB_SET.SIE_CTRL.SEND_DATA    <<= 1;
-            USB_SET.SIE_CTRL.START_TRANS  <<= 1;
+            task::sleep_us(50);
+//            for (volatile int i = 0; i < 12; i++);
+            // Phase 3: Trigger
+//            USB_SET.SIE_CTRL.START_TRANS <<= 1;
         } else {
-            // STATUS done → complete
-            usb_hcd::inst()._xfer_stage = usb_hcd::xfer_stage_t::SETUP;
+            // DATA phase done → restore interrupt endpoints and invoke callback
             USB.INT_EP_CTRL = usb_hcd::inst()._saved_int_ep_ctrl;
             if (usb_hcd::inst()._xfer_complete_cb) {
                 hcd_xfer_result_t result;
-        printf("DONE\n");
                 result.success    = true;
                 result.actual_len = USB_DPRAM.EP0_IN_BUFFER_CONTROL.LENGTH_0;
+                TUPP_LOG(LOG_DEBUG, "actual_len: %d", result.actual_len);
                 if (usb_hcd::inst()._xfer_buffer && result.actual_len > 0) {
                     volatile uint8_t * s = EPX_BUFFER;
                     uint8_t * d = usb_hcd::inst()._xfer_buffer;
-                    for (uint16_t i = 0; i < result.actual_len && i < 64; i++) d[i] = s[i];
+                    for (uint16_t i = 0; i < result.actual_len && i < 64; i++)
+                        d[i] = s[i];
                 }
                 usb_hcd::inst()._xfer_complete_cb(result);
             }
         }
     }
-    // --- RX Short Packet (DATA IN completed with short packet) ---
-    if (USB.INTS.RX_SHORT_PACKET) {
-        *((volatile uint32_t*)&USB_CLR.SIE_STATUS) = 0x00001000u;
-        if (usb_hcd::inst()._xfer_stage == usb_hcd::xfer_stage_t::DATA) {
-            usb_hcd::inst()._xfer_stage = usb_hcd::xfer_stage_t::STATUS;
-            USB_DPRAM.EP1_OUT_BUFFER_CONTROL.LENGTH_0    = 0;
-            USB_DPRAM.EP1_OUT_BUFFER_CONTROL.PID_0       = 1;
-            USB_DPRAM.EP1_OUT_BUFFER_CONTROL.LAST_0      = 1;
-            USB_DPRAM.EP1_OUT_BUFFER_CONTROL.AVAILABLE_0 = 1;
-            __DMB();
-            USB_CLR.SIE_CTRL.RECEIVE_DATA <<= 1;
-            USB_SET.SIE_CTRL.SEND_DATA    <<= 1;
-            USB_SET.SIE_CTRL.START_TRANS  <<= 1;
-        }
-    }
+
     // --- Errors ---
-    if (USB.INTS.ERROR_RX_TIMEOUT || USB.INTS.ERROR_CRC) {
+    if (USB.INTS.ERROR_RX_TIMEOUT ||
+        USB.INTS.ERROR_DATA_SEQ ||
+        USB.INTS.ERROR_CRC) {
         *((volatile uint32_t*)&USB_CLR.SIE_STATUS) = 0xFFFFFFFFu;
         USB.INT_EP_CTRL = usb_hcd::inst()._saved_int_ep_ctrl;
-        usb_hcd::inst()._xfer_stage = usb_hcd::xfer_stage_t::SETUP;
         if (usb_hcd::inst()._xfer_complete_cb) {
             hcd_xfer_result_t result {0};
             result.success    = false;
@@ -285,7 +269,8 @@ void USBCTRL_IRQ_Handler(void) {
             usb_hcd::inst()._xfer_complete_cb(result);
         }
     }
-    // --- BUFF_STATUS (interrupt endpoints) ---
+
+    // --- Interrupt endpoint data ---
     if (USB.INTS.BUFF_STATUS) {
         uint32_t buffs = USB.BUFF_STATUS;
         for (int slot = 0; slot < 15; ++slot) {
@@ -294,7 +279,8 @@ void USBCTRL_IRQ_Handler(void) {
                 USB_CLR.BUFF_STATUS = bit;
                 auto & ep = usb_hcd::inst()._int_eps[slot];
                 if (ep.used && ep.data_handler) {
-                    EP_BUFFER_CONTROL_t * bc = (&USB_DPRAM.EP1_IN_BUFFER_CONTROL) + 2 + (slot * 2);
+                    EP_BUFFER_CONTROL_t * bc =
+                        (&USB_DPRAM.EP1_IN_BUFFER_CONTROL) + 2 + (slot * 2);
                     ep.data_handler(ep.hw_buffer, (uint16_t)bc->LENGTH_0);
                 }
             }

@@ -17,6 +17,7 @@
 #ifndef TUPP_USB_HCD_H
 #define TUPP_USB_HCD_H
 
+#include <functional>
 #include "usb_hcd_interface.h"
 #include "RP2350.h"
 
@@ -26,6 +27,8 @@ void USBCTRL_IRQ_Handler(void);
 
 class usb_hcd : public usb_hcd_interface {
 public:
+    std::function<void()> connect_handler;
+    std::function<void()> disconnect_handler;
     friend void USBCTRL_IRQ_Handler(void);
 
     static usb_hcd & inst() {
@@ -33,8 +36,7 @@ public:
         return _inst;
     }
 
-    void port_reset() override;
-    void port_reset_end() override;
+    void port_reset(uint8_t delay_ms = 50) override;
     bool port_connected() override;
     void assign_address(uint8_t addr) override;
     void irq_enable(bool e) override;
@@ -59,6 +61,8 @@ private:
     std::function<void(hcd_xfer_result_t)> _xfer_complete_cb;
     uint8_t * _xfer_buffer;
     uint16_t  _xfer_length {0};
+    enum class xfer_stage_t { SETUP, DATA, STATUS };
+    xfer_stage_t _xfer_stage {xfer_stage_t::SETUP};
 
     // Bookkeeping for the 15 hardware "interrupt endpoint" slots
     // (INT_EP_CTRL bits 1..15). These are auto-polled by hardware
