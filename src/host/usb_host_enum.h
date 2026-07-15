@@ -58,9 +58,8 @@ public:
         using enum usb_log::log_level;
         out_ep = {};
         TUPP_LOG(LOG_INFO, "usb_host_enum: sending bus reset");
-        _hcd.port_reset();
-        task::sleep_ms(50); // hold reset 50ms (USB spec minimum)
-        _hcd.port_reset_end();
+        _hcd.port_reset(50); // 50ms bus reset
+        task::sleep_ms(10); // recovery delay
         task::sleep_ms(500); // extended stability delay after reset
 
         if (!_hcd.port_connected()) {
@@ -153,25 +152,16 @@ private:
                 ok   = result.success;
                 done = true;
             });
-        printf("  after control_xfer: done=%d ok=%d\n", (int)done, (int)ok);
         uint32_t waited_ms = 0;
         while (!done && waited_ms < TUPP_HOST_XFER_TIMEOUT_MS) {
-            if (waited_ms % 20 == 0) {
-                printf("  waiting: INTS=0x%08lx SIE_STATUS=0x%08lx SIE_CTRL=0x%08lx\n",
-                       *((volatile uint32_t*)(0x50110000 + 0x98)),
-                       *((volatile uint32_t*)(0x50110000 + 0x50)),
-                       *((volatile uint32_t*)(0x50110000 + 0x4c)));
-            }
-            uint32_t _sie_st = *((volatile uint32_t*)(0x50110000 + 0x50));
-            printf("  poll raw SIE_STATUS=0x%08lx bit18=%d\n", _sie_st, (int)((_sie_st & 0x00040000u) != 0));
-            // Poll SIE_STATUS.TRANS_COMPLETE directly (bit 18 = 0x40000)
-            if (!done && (*((volatile uint32_t*)(0x50110000 + 0x50)) & 0x00040000u)) {
-                printf("  Poll: TRANS_COMPLETE detected!\n");
-                *((volatile uint32_t*)(0x50113000 + 0x50)) = 0x00040000u; // clear via CLR
-                ok   = true;
-                done = true;
-            }
             task::sleep_ms(1);
+            // Poll SIE_STATUS for completion (RX_SHORT_PACKET bit12 or TRANS_COMPLETE bit18)
+            uint32_t sie_st = *((volatile uint32_t*)(0x50110000 + 0x50));
+            if (waited_ms % 100 == 50) printf("  ST=0x%08lx BS=0x%08lx\n", sie_st, *((volatile uint32_t*)(0x50110000 + 0x58)));
+            if (!done && (sie_st & 0x1000u)) { // RX_SHORT_PACKET
+                *((volatile uint32_t*)(0x50113000 + 0x50)) = 0x1000u;
+                ok = true; done = true;
+            }
             waited_ms++;
         }
         if (!done) {

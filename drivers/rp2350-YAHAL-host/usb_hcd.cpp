@@ -217,8 +217,10 @@ void USBCTRL_IRQ_Handler(void) {
     if (USB.INTS.TRANS_COMPLETE) {
         printf("TC\n");
         *((volatile uint32_t*)&USB_CLR.SIE_STATUS) = 0x00040000u;
+        printf("stage=%d\n",(int)usb_hcd::inst()._xfer_stage);
         if (usb_hcd::inst()._xfer_stage == usb_hcd::xfer_stage_t::SETUP) {
             // SETUP done - clear first, then arm buffer, then DATA IN
+            printf("->DATA\n");
             usb_hcd::inst()._xfer_stage = usb_hcd::xfer_stage_t::DATA;
             USB_CLR.SIE_CTRL.SEND_SETUP  <<= 1;
             USB_CLR.SIE_CTRL.START_TRANS <<= 1;
@@ -227,7 +229,6 @@ void USBCTRL_IRQ_Handler(void) {
             __DMB();
             if (USB.SIE_STATUS.SPEED == 1) USB_SET.SIE_CTRL.PREAMBLE_EN <<= 1;
             USB_SET.SIE_CTRL.RECEIVE_DATA <<= 1;
-            USB_SET.SIE_CTRL.START_TRANS  <<= 1;
         } else if (usb_hcd::inst()._xfer_stage == usb_hcd::xfer_stage_t::DATA) {
             // DATA done → STATUS OUT
             usb_hcd::inst()._xfer_stage = usb_hcd::xfer_stage_t::STATUS;
@@ -288,6 +289,24 @@ void USBCTRL_IRQ_Handler(void) {
     // --- BUFF_STATUS (interrupt endpoints) ---
     if (USB.INTS.BUFF_STATUS) {
         uint32_t buffs = USB.BUFF_STATUS;
+        // EP0_IN (bit 0) = DATA IN received for control transfer
+        if (buffs & 0x5u) { printf("BS=0x%lx\n", buffs); }
+        if (buffs & 0x1u) {
+            USB_CLR.BUFF_STATUS = 0x1u;
+            // DATA phase done via BUFF_STATUS
+            if (usb_hcd::inst()._xfer_stage == usb_hcd::xfer_stage_t::DATA) {
+                usb_hcd::inst()._xfer_stage = usb_hcd::xfer_stage_t::STATUS;
+                USB_DPRAM.EP1_OUT_BUFFER_CONTROL.LENGTH_0    = 0;
+                USB_DPRAM.EP1_OUT_BUFFER_CONTROL.PID_0       = 1;
+                USB_DPRAM.EP1_OUT_BUFFER_CONTROL.LAST_0      = 1;
+                USB_DPRAM.EP1_OUT_BUFFER_CONTROL.AVAILABLE_0 = 1;
+                USB_DPRAM.EP1_OUT_BUFFER_CONTROL.FULL_0      = 1;
+                __DMB();
+                USB_CLR.SIE_CTRL.RECEIVE_DATA <<= 1;
+                USB_SET.SIE_CTRL.SEND_DATA    <<= 1;
+                USB_SET.SIE_CTRL.START_TRANS  <<= 1;
+            }
+        }
         for (int slot = 0; slot < 15; ++slot) {
             uint32_t bit = 1u << ((slot + 1) * 2);
             if (buffs & bit) {

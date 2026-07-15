@@ -37,8 +37,7 @@ struct hcd_xfer_result_t {
 class usb_hcd_interface {
 public:
     // Reset the USB bus / port (electrical reset of the connected device)
-    virtual void port_reset() = 0;
-    virtual void port_reset_end() = 0;
+    virtual void port_reset(uint8_t delay_ms = 50) = 0;
 
     // Check if a device is currently connected to the port
     virtual bool port_connected() = 0;
