@@ -156,10 +156,10 @@ private:
         while (!done && waited_ms < TUPP_HOST_XFER_TIMEOUT_MS) {
             task::sleep_ms(1);
             // Poll SIE_STATUS for completion (RX_SHORT_PACKET bit12 or TRANS_COMPLETE bit18)
-            uint32_t sie_st = *((volatile uint32_t*)(0x50110000 + 0x50));
-            if (waited_ms % 100 == 50) printf("  ST=0x%08lx BS=0x%08lx\n", sie_st, *((volatile uint32_t*)(0x50110000 + 0x58)));
+            uint32_t sie_st = *((volatile uint32_t*)&_USB_::USB.SIE_STATUS);
+            if (waited_ms % 100 == 50) printf("  ST=0x%08lx BS=0x%08lx\n", sie_st, *((volatile uint32_t*)&_USB_::USB.BUFF_STATUS));
             if (!done && (sie_st & 0x1000u)) { // RX_SHORT_PACKET
-                *((volatile uint32_t*)(0x50113000 + 0x50)) = 0x1000u;
+                *((volatile uint32_t*)&_USB_::USB_CLR.SIE_STATUS) = 0x1000u;
                 ok = true; done = true;
             }
             waited_ms++;
