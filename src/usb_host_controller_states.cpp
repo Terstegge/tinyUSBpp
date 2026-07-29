@@ -35,6 +35,7 @@ void host_get8::enter() {
 
     _context->_driver.control_xfer(0, req, _buffer,
         [&](hcd_xfer_result_t result) {
+            TUPP_LOG(LOG_INFO, "In callback from control_xfer() !!!");
             host_events e = result.success ? TRANSFER_COMPLETE : DEVICE_DISCONNECTED;
             if (_context->_event_queue.available_put()) {
                 _context->_event_queue.put(e);

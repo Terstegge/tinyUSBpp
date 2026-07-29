@@ -59,6 +59,8 @@ private:
     uint8_t * _xfer_buffer {nullptr};
     uint16_t  _xfer_length {0};
 
+    volatile bool    _trans_triggered {false};
+
     // Bookkeeping for the 15 hardware "interrupt endpoint" slots
     // (INT_EP_CTRL bits 1..15). These are auto-polled by hardware
     // once active - used for reading e.g. HID mouse/keyboard reports.

@@ -3,6 +3,7 @@
 //
 
 #include "usb_host_controller.h"
+#include "semaphore.h"
 
 usb_host_controller::usb_host_controller(usb_hcd_interface &driver) : task{"USB HCD"}, _host_disconnected(this),
                                                                       _host_get8(this),
@@ -19,6 +20,7 @@ usb_host_controller::usb_host_controller(usb_hcd_interface &driver) : task{"USB 
         host_events e = (speed !=0)  ? DEVICE_CONNECTED : DEVICE_DISCONNECTED;
         if (_event_queue.available_put()) {
             _event_queue.put(e);
+            _event_queue_semaphore.signal();
         } else {
             TUPP_LOG(LOG_ERROR, "HCD event queue full!");
         }
@@ -27,11 +29,11 @@ usb_host_controller::usb_host_controller(usb_hcd_interface &driver) : task{"USB 
 
 [[noreturn]] void usb_host_controller::run() {
     while (true) {
+        _event_queue_semaphore.wait();
         while (_event_queue.available_get()) {
             host_events e;
             _event_queue.get(e);
             _state->process_event(e);
         }
-        task::sleep_ms(20);
     }
 }

@@ -13,7 +13,7 @@ using enum usb_log::log_level;
 #include "task.h"
 
 #include <cstdio>
-
+#include "semaphore.h"
 
 class usb_host_controller : public task {
 public:
@@ -41,6 +41,7 @@ private:
 
     usb_hcd_interface & _driver;
     FIFO<host_events> _event_queue {100};
+    semaphore         _event_queue_semaphore;
 };
 
 #endif //USB_HOST_TEST_USB_HOST_CONTROLLER_H
