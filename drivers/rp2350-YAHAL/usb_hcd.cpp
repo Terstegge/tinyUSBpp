@@ -22,7 +22,7 @@ using namespace _RESETS_;
 using namespace _USB_DPRAM_;
 using enum usb_log::log_level;
 
-static uint8_t * const EPX_BUFFER         = (uint8_t *)&USB_DPRAM + 0x100;
+static uint8_t * const EPX_BUFFER         = (uint8_t *)&USB_DPRAM + 0x180;
 static uint8_t * const INT_EP_BUFFER_BASE = (uint8_t *)&USB_DPRAM + 0x1C0;
 
 usb_hcd::usb_hcd() : _xfer_buffer(nullptr) {
@@ -51,17 +51,6 @@ usb_hcd::usb_hcd() : _xfer_buffer(nullptr) {
     USB_SET.SIE_CTRL.PULLDOWN_EN   <<= 1;
     USB_SET.SIE_CTRL.KEEP_ALIVE_EN <<= 1;
     USB_SET.SIE_CTRL.EP0_INT_1BUF  <<= 1;
-
-    // Configure EP1 for control transfers (EPX mechanism)
-    uint16_t epx_offset = (uint16_t)(EPX_BUFFER - (uint8_t *)&USB_DPRAM);
-    USB_DPRAM.EP1_IN_CONTROL.ENABLE             = 1;
-    USB_DPRAM.EP1_IN_CONTROL.ENDPOINT_TYPE      = EP_CONTROL_ENDPOINT_TYPE__Control;
-    USB_DPRAM.EP1_IN_CONTROL.BUFFER_ADDRESS     = epx_offset;
-    USB_DPRAM.EP1_IN_CONTROL.INTERRUPT_PER_BUFF = 1;
-    USB_DPRAM.EP1_OUT_CONTROL.ENABLE             = 1;
-    USB_DPRAM.EP1_OUT_CONTROL.ENDPOINT_TYPE      = EP_CONTROL_ENDPOINT_TYPE__Control;
-    USB_DPRAM.EP1_OUT_CONTROL.BUFFER_ADDRESS     = epx_offset;
-    USB_DPRAM.EP1_OUT_CONTROL.INTERRUPT_PER_BUFF = 1;
 
     // Enable interrupts
     USB_SET.INTE.HOST_CONN_DIS   <<= 1;
@@ -124,71 +113,25 @@ bool usb_hcd::control_xfer(uint8_t daddr,
     // Copy setup packet to DPRAM
     memcpy(&USB_DPRAM.SETUP_PACKET_LOW, &request, _xfer_length);
 
-    // Prepare receive buffer
-//    USB_DPRAM.EP0_IN_BUFFER_CONTROL.LENGTH_0    = 64;
-//    USB_DPRAM.EP0_IN_BUFFER_CONTROL.AVAILABLE_0 = 1;
-//    USB_DPRAM.EP0_IN_BUFFER_CONTROL.PID_0       = 1;
-//    USB_DPRAM.EP0_IN_BUFFER_CONTROL.LAST_0      = 1;
-
-
-    // Clear bits in SIE_STATUS register
-//    USB_SET.SIE_STATUS.TRANS_COMPLETE <<= 1;
-
     // Set up SIE_CTRL register
-//    USB_SET.SIE_CTRL.SEND_SETUP   <<= 1;
     USB_CLR.SIE_CTRL.SEND_DATA    <<= 1;
     USB_CLR.SIE_CTRL.RECEIVE_DATA <<= 1;
-    USB_SET.SIE_CTRL.PREAMBLE_EN  <<= 1;
+    USB_SET.SIE_CTRL.PREAMBLE_EN  <<= 1;  // for now only low speed device
     USB_SET.SIE_CTRL.KEEP_ALIVE_EN<<= 1;
 
     // Trigger sending
-//    _trans_triggered = false;
     SIE_CTRL_t tmp = USB.SIE_CTRL;
     tmp.SEND_SETUP  = 1;
     tmp.START_TRANS = 1;
     USB.SIE_CTRL = tmp;
 
-    while(!_trans_triggered) ; //TUPP_LOG(LOG_INFO, "Waiting");
+    while(!_trans_triggered) ;
     _trans_triggered = false;
     TUPP_LOG(LOG_INFO, "Stage 2");
 
-    USB_CLR.SIE_CTRL.SEND_SETUP   <<= 1;
-    USB_SET.SIE_CTRL.RECEIVE_DATA <<= 1;
-    USB_SET.SIE_CTRL.START_TRANS  <<= 1;
-
-    while(!_trans_triggered) ; //TUPP_LOG(LOG_INFO, "Waiting");
+    while(!_trans_triggered) ;
     _trans_triggered = false;
     TUPP_LOG(LOG_INFO, "Stage 3");
-
-    for(int i=0; i < 8; ++i) {
-        TUPP_LOG(LOG_INFO, "%d, %x", i, *((uint8_t *)0x50100100 + i));
-    }
-    // Arm EP0 IN buffer: LAST_BUFF=1, AVAILABLE=1, LENGTH=64
-    // (LAST_BUFF is required for TRANS_COMPLETE to fire!)
-//    *((volatile uint32_t*)&USB_DPRAM.EP0_OUT_BUFFER_CONTROL) = 0;
-//    *((volatile uint32_t*)&USB_DPRAM.EP0_IN_BUFFER_CONTROL) = (1u<<14) | (1u<<10) | 64u;
-
-    // Disable interrupt endpoints during EPX transfer (RP2350 silicon bug)
-//    _saved_int_ep_ctrl = USB.INT_EP_CTRL;
-//    USB.INT_EP_CTRL = 0;
-
-    // Memory barrier: ensure all DPRAM writes are visible to USB SIE
-//    __DMB();
-
-    // Start SETUP phase: SEND_SETUP + START_TRANS (RMW pattern)
-//    USB_SET.SIE_CTRL.SEND_SETUP <<= 1;
-//    USB_SET.SIE_CTRL.START_TRANS <<= 1;
-
-//    SIE_CTRL_t tmp = USB.SIE_CTRL;
-//    tmp.SEND_SETUP  = 1;
-//    tmp.START_TRANS = 1;
-//    USB.SIE_CTRL = tmp;
-
-//    uint32_t sie = *((volatile uint32_t*)&USB.SIE_CTRL);
-//    sie |= (1u << 1); // SEND_SETUP
-//    *((volatile uint32_t*)&USB.SIE_CTRL) = sie;
-//    for (volatile int i = 0; i < 12; i++);
-//    *((volatile uint32_t*)&USB.SIE_CTRL) = sie | (1u << 0); // START_TRANS
 
     return true;
 }
@@ -255,42 +198,46 @@ void USBCTRL_IRQ_Handler(void) {
         usb_hcd::inst()._trans_triggered = true;
         USB.SIE_STATUS.TRANS_COMPLETE = 1;
         if (USB.SIE_CTRL.SEND_SETUP) {
+            // Prepare EPx control register. This register is located at
+            // address 0x50100100, which is EP0 buffer 0 in device mode.
+            // The EPx control register defines the buffer address
+            // (EPX_BUFFER = 0x50100180).
+            // The input buffer will be EPX_BUFFER (0x50100180)
+            EP_CONTROL_t * epx_ctrl = (EP_CONTROL_t *)0x50100100;
+            epx_ctrl->value = 0;
+            epx_ctrl->ENABLE = 1;
+            epx_ctrl->BUFFER_ADDRESS = (uint16_t)(EPX_BUFFER - (uint8_t  *)&USB_DPRAM);
+            epx_ctrl->DOUBLE_BUFFERED = 0;
+            epx_ctrl->ENDPOINT_TYPE = EP_CONTROL_ENDPOINT_TYPE__Control;
+
+            // Prepare EPx buffer control register
             USB_DPRAM.EP0_IN_BUFFER_CONTROL.LENGTH_0 = 64;
             USB_DPRAM.EP0_IN_BUFFER_CONTROL.PID_0    = 1;
             USB_DPRAM.EP0_IN_BUFFER_CONTROL.LAST_0   = 1;
             USB_DPRAM.EP0_IN_BUFFER_CONTROL.AVAILABLE_0 = 1;
 
-            // SEND_SETUP still set → SETUP phase done, start DATA IN phase
-            // Arm EP0 IN buffer: AVAILABLE=1, LENGTH=64, PID=DATA1, LAST_BUFF=1
-//            uint32_t buf_ctrl = (1u<<14) | (1u<<13) | (1u<<10) | 64u;
-//            *((volatile uint32_t*)&USB_DPRAM.EP0_IN_BUFFER_CONTROL) = buf_ctrl;
             __DMB();
-            // Phase 1: Clear SEND_SETUP (must not change RECEIVE_DATA in same write)
+
+            // Trigger Phase 2 (reading from device)
             USB_CLR.SIE_CTRL.SEND_SETUP  <<= 1;
             USB_SET.SIE_CTRL.RECEIVE_DATA <<= 1;
-            USB_CLR.SIE_CTRL.START_TRANS <<= 1;
+            USB_SET.SIE_CTRL.START_TRANS <<= 1;
 
-            task::sleep_us(50);
-//            for (volatile int i = 0; i < 12; i++);
-            // Phase 2: Set RECEIVE_DATA (SEND_SETUP already 0, no conflict)
-            USB_SET.SIE_CTRL.RECEIVE_DATA <<= 1;
-            task::sleep_us(50);
-//            for (volatile int i = 0; i < 12; i++);
-            // Phase 3: Trigger
-//            USB_SET.SIE_CTRL.START_TRANS <<= 1;
         } else {
+
             // DATA phase done → restore interrupt endpoints and invoke callback
             USB.INT_EP_CTRL = usb_hcd::inst()._saved_int_ep_ctrl;
             if (usb_hcd::inst()._xfer_complete_cb) {
-                hcd_xfer_result_t result;
+                hcd_xfer_result_t result {0};
                 result.success    = true;
                 result.actual_len = USB_DPRAM.EP0_IN_BUFFER_CONTROL.LENGTH_0;
                 TUPP_LOG(LOG_DEBUG, "actual_len: %d", result.actual_len);
                 if (usb_hcd::inst()._xfer_buffer && result.actual_len > 0) {
-                    volatile uint8_t * s = EPX_BUFFER;
                     uint8_t * d = usb_hcd::inst()._xfer_buffer;
-                    for (uint16_t i = 0; i < result.actual_len && i < 64; i++)
-                        d[i] = s[i];
+                    for (uint16_t i = 0; i < result.actual_len && i < 64; i++) {
+                        TUPP_LOG(LOG_INFO, "%x", EPX_BUFFER[i]);
+                        d[i] = EPX_BUFFER[i];
+                    }
                 }
                 usb_hcd::inst()._xfer_complete_cb(result);
             }
