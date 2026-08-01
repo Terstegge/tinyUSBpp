@@ -60,6 +60,7 @@ private:
     usb_hcd();
     std::function<void(hcd_xfer_result_t)> _xfer_complete_cb;
     uint8_t * _xfer_buffer;
+    volatile bool _trans_triggered {false};
     uint16_t  _xfer_length {0};
     enum class xfer_stage_t { SETUP, DATA, STATUS };
     xfer_stage_t _xfer_stage {xfer_stage_t::SETUP};
