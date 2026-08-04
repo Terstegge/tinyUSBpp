@@ -60,7 +60,7 @@ public:
         TUPP_LOG(LOG_INFO, "usb_host_enum: sending bus reset");
         _hcd.port_reset(50); // 50ms bus reset
         task::sleep_ms(10); // recovery delay
-        task::sleep_ms(500); // extended stability delay after reset
+        task::sleep_ms(1000); // extended stability delay after reset
 
         if (!_hcd.port_connected()) {
             TUPP_LOG(LOG_WARNING, "usb_host_enum: device disappeared during reset");
@@ -72,13 +72,13 @@ public:
                       "8-byte device descriptor");
             return false;
         }
-
-        const uint8_t new_addr = 1;
-        if (!set_address(new_addr)) {
-            TUPP_LOG(LOG_WARNING, "usb_host_enum: SET_ADDRESS failed/timed out");
-            return false;
-        }
-        task::sleep_ms(10);
+        // SET_ADDRESS skipped for testing
+        const uint8_t new_addr = 0;
+////        if (!set_address(new_addr)) {
+////            TUPP_LOG(LOG_WARNING, "usb_host_enum: SET_ADDRESS failed/timed out");
+////            return false;
+////        }
+////        task::sleep_ms(10);
         _hcd.assign_address(new_addr);
 
         if (!get_descriptor_full(new_addr)) {
@@ -149,6 +149,7 @@ private:
         volatile bool ok   = false;
         _hcd.control_xfer(daddr, req, _buffer,
             [&](hcd_xfer_result_t result) {
+                printf("LAMBDA CALLED success=%d len=%d\n", result.success, (int)result.actual_len);
                 ok   = result.success;
                 done = true;
             });
@@ -206,7 +207,8 @@ private:
         req.wValue    = new_addr;
         req.wIndex    = 0;
         req.wLength   = 0;
-        return do_control_xfer(0, req);
+        _hcd.control_xfer(0, req, nullptr, [](hcd_xfer_result_t){});
+        return true;
     }
 
     bool get_config_descriptor(uint8_t daddr, uint16_t len) {

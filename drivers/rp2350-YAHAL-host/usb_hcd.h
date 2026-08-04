@@ -61,8 +61,10 @@ private:
     std::function<void(hcd_xfer_result_t)> _xfer_complete_cb;
     uint8_t * _xfer_buffer;
     volatile bool _trans_triggered {false};
+    uint8_t _pending_address {0};
     uint16_t  _xfer_length {0};
     enum class xfer_stage_t { SETUP, DATA, STATUS };
+    uint16_t _xfer_offset {0};
     xfer_stage_t _xfer_stage {xfer_stage_t::SETUP};
 
     // Bookkeeping for the 15 hardware "interrupt endpoint" slots

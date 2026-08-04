@@ -41,6 +41,7 @@ usb_hcd::usb_hcd() : _xfer_buffer(nullptr) {
     // Force VBUS detect so the host thinks it supplies power
     USB_SET.USB_PWR.VBUS_DETECT_OVERRIDE_EN <<= 1;
     USB_SET.SIE_CTRL.VBUS_EN <<= 1;
+    USB_SET.SIE_CTRL.VBUS_EN <<= 1;
     USB_SET.USB_PWR.VBUS_DETECT <<= 1;
 
     // Enable the USB controller in host mode and
@@ -107,13 +108,14 @@ bool usb_hcd::control_xfer(uint8_t daddr,
     _xfer_buffer      = buffer;
     _xfer_complete_cb = complete_cb;
     _xfer_length      = request.wLength;
+    _xfer_offset = 0;
 
     // Set device address and endpoint 0
     USB.ADDR_ENDP.ADDRESS  = daddr;
     USB.ADDR_ENDP.ENDPOINT = 0;
 
     // Copy setup packet to DPRAM
-    memcpy(&USB_DPRAM.SETUP_PACKET_LOW, &request, sizeof(TUPP::setup_packet_t));
+    memcpy(&USB_DPRAM.SETUP_PACKET_LOW, &request, 8);
 
     // Set up SIE_CTRL register
     USB_CLR.SIE_CTRL.SEND_DATA    <<= 1;
@@ -123,20 +125,10 @@ bool usb_hcd::control_xfer(uint8_t daddr,
 
     // Trigger sending
     SIE_CTRL_t tmp = USB.SIE_CTRL;
-    tmp.SEND_SETUP  = 1;
+    tmp.SEND_SETUP = 1;
     tmp.START_TRANS = 1;
     USB.SIE_CTRL = tmp;
-
-    while(!_trans_triggered) ;
-    _trans_triggered = false;
-    TUPP_LOG(LOG_INFO, "Stage 2");
-
-    if (_xfer_length > 0) {
-        while(!_trans_triggered) ;
-        _trans_triggered = false;
-        TUPP_LOG(LOG_INFO, "Stage 3");
-    }
-
+  
     return true;
 }
 
@@ -199,6 +191,7 @@ void USBCTRL_IRQ_Handler(void) {
 
     // --- Transfer complete (SETUP or DATA phase) ---
     if (USB.INTS.TRANS_COMPLETE) {
+        printf("IRQ fired\n");
         usb_hcd::inst()._trans_triggered = true;
         USB.SIE_STATUS.TRANS_COMPLETE = 1;
         if (USB.SIE_CTRL.SEND_SETUP) {
@@ -226,24 +219,35 @@ void USBCTRL_IRQ_Handler(void) {
             USB_CLR.SIE_CTRL.SEND_SETUP  <<= 1;
             USB_SET.SIE_CTRL.RECEIVE_DATA <<= 1;
             USB_SET.SIE_CTRL.START_TRANS <<= 1;
-
         } else {
+            uint16_t pkt_len = USB_DPRAM.EP0_IN_BUFFER_CONTROL.LENGTH_0;
+            if (usb_hcd::inst()._xfer_buffer && pkt_len > 0) {
+                uint8_t * d = usb_hcd::inst()._xfer_buffer + usb_hcd::inst()._xfer_offset;
+                for (uint16_t i = 0; i < pkt_len && i < 64; i++) d[i] = EPX_BUFFER[i];
+                usb_hcd::inst()._xfer_offset += pkt_len;
+            }
+            printf("DATA RECEIVED pkt_len=%d offset=%d length=%d\n", (int)pkt_len, (int)usb_hcd::inst()._xfer_offset, (int)usb_hcd::inst()._xfer_length);
+            if (usb_hcd::inst()._xfer_length - usb_hcd::inst()._xfer_offset > 0 && pkt_len > 0) {
+                USB_DPRAM.EP0_IN_BUFFER_CONTROL.LENGTH_0 = 8;
+                USB_DPRAM.EP0_IN_BUFFER_CONTROL.PID_0 = USB_DPRAM.EP0_IN_BUFFER_CONTROL.PID_0 ^ 1;
+                USB_DPRAM.EP0_IN_BUFFER_CONTROL.LAST_0   = 1;
+                USB_DPRAM.EP0_IN_BUFFER_CONTROL.AVAILABLE_0 = 1;
+                __DMB();
+                USB_SET.SIE_CTRL.RECEIVE_DATA <<= 1;
+                USB_SET.SIE_CTRL.START_TRANS  <<= 1;
+            } else {
+                printf("TRANSFER COMPLETE offset=%d length=%d\n", (int)usb_hcd::inst()._xfer_offset, (int)usb_hcd::inst()._xfer_length);
+                usb_hcd::inst()._trans_triggered = true;
+                if (usb_hcd::inst()._xfer_complete_cb) {
+                    hcd_xfer_result_t result{ 0 };
+                    result.success = true;
+                    result.actual_len = usb_hcd::inst()._xfer_offset;
 
-            // DATA phase done → restore interrupt endpoints and invoke callback
-            USB.INT_EP_CTRL = usb_hcd::inst()._saved_int_ep_ctrl;
-            if (usb_hcd::inst()._xfer_complete_cb) {
-                hcd_xfer_result_t result {0};
-                result.success    = true;
-                result.actual_len = USB_DPRAM.EP0_IN_BUFFER_CONTROL.LENGTH_0;
-                TUPP_LOG(LOG_DEBUG, "actual_len: %d", result.actual_len);
-                if (usb_hcd::inst()._xfer_buffer && result.actual_len > 0) {
-                    uint8_t * d = usb_hcd::inst()._xfer_buffer;
-                    for (uint16_t i = 0; i < result.actual_len && i < 64; i++) {
-                        TUPP_LOG(LOG_INFO, "%x", EPX_BUFFER[i]);
-                        d[i] = EPX_BUFFER[i];
-                    }
+                    printf("CALLBACK FIRED len=%d\n", (int)usb_hcd::inst()._xfer_offset);
+                    usb_hcd::inst()._xfer_complete_cb(result);
+
+                    usb_hcd::inst()._xfer_complete_cb = nullptr;
                 }
-                usb_hcd::inst()._xfer_complete_cb(result);
             }
         }
     }
@@ -258,6 +262,7 @@ void USBCTRL_IRQ_Handler(void) {
             hcd_xfer_result_t result {0};
             result.success    = false;
             result.actual_len = 0;
+            printf("CALLBACK FIRED len=%d\n", usb_hcd::inst()._xfer_offset);
             usb_hcd::inst()._xfer_complete_cb(result);
         }
     }
