@@ -72,13 +72,7 @@ public:
                       "8-byte device descriptor");
             return false;
         }
-        // SET_ADDRESS skipped for testing
         const uint8_t new_addr = 0;
-////        if (!set_address(new_addr)) {
-////            TUPP_LOG(LOG_WARNING, "usb_host_enum: SET_ADDRESS failed/timed out");
-////            return false;
-////        }
-////        task::sleep_ms(10);
         _hcd.assign_address(new_addr);
 
         if (!get_descriptor_full(new_addr)) {
@@ -114,6 +108,7 @@ public:
         // --- SET_CONFIGURATION: REQUIRED by the USB spec before the
         //     device will respond on any endpoint other than control! ---
         uint8_t config_value = _buffer[5]; // bConfigurationValue
+        printf("SET_CONFIGURATION value=%d buffer[0]=%d buffer[1]=%d buffer[2]=%d buffer[3]=%d buffer[4]=%d buffer[5]=%d\n", config_value, _buffer[0], _buffer[1], _buffer[2], _buffer[3], _buffer[4], _buffer[5]);
         if (!set_configuration(new_addr, config_value)) {
             TUPP_LOG(LOG_WARNING, "usb_host_enum: SET_CONFIGURATION failed/timed out");
             return false;
@@ -155,12 +150,16 @@ private:
             });
         uint32_t waited_ms = 0;
         while (!done && waited_ms < TUPP_HOST_XFER_TIMEOUT_MS) {
-            for(volatile int _i=0; _i<200000; _i++);
+            task::sleep_ms(1);
             // Poll SIE_STATUS for completion (RX_SHORT_PACKET bit12 or TRANS_COMPLETE bit18)
             uint32_t sie_st = *((volatile uint32_t*)&_USB_::USB.SIE_STATUS);
             if (waited_ms % 100 == 50) printf("  ST=0x%08lx BS=0x%08lx\n", sie_st, *((volatile uint32_t*)&_USB_::USB.BUFF_STATUS));
             if (!done && (sie_st & 0x1000u)) { // RX_SHORT_PACKET
                 *((volatile uint32_t*)&_USB_::USB_CLR.SIE_STATUS) = 0x1000u;
+                ok = true; done = true;
+            }
+            if (!done && (sie_st & 0x20000000u)) { // STALL_REC
+                *((volatile uint32_t*)&_USB_::USB_CLR.SIE_STATUS) = 0x20000000u;
                 ok = true; done = true;
             }
             waited_ms++;
@@ -207,8 +206,7 @@ private:
         req.wValue    = new_addr;
         req.wIndex    = 0;
         req.wLength   = 0;
-        _hcd.control_xfer(0, req, nullptr, [](hcd_xfer_result_t){});
-        return true;
+        return do_control_xfer(0, req);
     }
 
     bool get_config_descriptor(uint8_t daddr, uint16_t len) {
