@@ -114,6 +114,7 @@ bool usb_hcd::control_xfer(uint8_t daddr,
     _status_out_pending = false;
     _status_in_only = false;
 
+    // Save and disable interrupt endpoints during control transfer
     // Set device address and endpoint 0
     USB.ADDR_ENDP.ADDRESS = daddr;
     USB.ADDR_ENDP.ENDPOINT = 0;
@@ -174,6 +175,13 @@ usb_endpoint* usb_hcd::create_endpoint(
     ep_ctrl->BUFFER_ADDRESS = offset;
     ep_ctrl->INTERRUPT_PER_BUFF = 1;
     USB.INT_EP_CTRL.INT_EP_ACTIVE |= (1 << slot);
+    printf("INT_EP slot=%d active=%08lx\n", slot, (uint32_t)USB.INT_EP_CTRL.INT_EP_ACTIVE);
+    // Arm buffer for first reception
+    EP_BUFFER_CONTROL_t* bc = (&USB_DPRAM.EP1_IN_BUFFER_CONTROL) + slot;
+    bc->LENGTH_0    = packet_size;
+    bc->PID_0       = 0;
+    bc->LAST_0      = 1;
+    bc->AVAILABLE_0 = 1;
     return nullptr;
 }
 
@@ -212,6 +220,7 @@ extern "C" {
                     printf("STATUS OUT COMPLETE, CALLBACK FIRED len=%d\n",
                         (int)usb_hcd::inst()._xfer_offset);
                     usb_hcd::inst()._xfer_complete_cb(result);
+                    USB.INT_EP_CTRL = usb_hcd::inst()._saved_int_ep_ctrl;
                     usb_hcd::inst()._xfer_complete_cb = nullptr;
                 }
                 return;
@@ -364,8 +373,14 @@ extern "C" {
                     auto& ep = usb_hcd::inst()._int_eps[slot];
                     if (ep.used && ep.data_handler) {
                         EP_BUFFER_CONTROL_t* bc =
-                            (&USB_DPRAM.EP1_IN_BUFFER_CONTROL) + 2 + (slot * 2);
-                        ep.data_handler(ep.hw_buffer, (uint16_t)bc->LENGTH_0);
+                            (&USB_DPRAM.EP1_IN_BUFFER_CONTROL) + slot;
+                        uint16_t len = (uint16_t)bc->LENGTH_0;
+                        ep.data_handler(ep.hw_buffer, len);
+                        // Rearm buffer for next report
+                        bc->PID_0     = bc->PID_0 ^ 1;
+                        bc->LENGTH_0  = ep.packet_size;
+                        bc->LAST_0    = 1;
+                        bc->AVAILABLE_0 = 1;
                     }
                 }
             }
