@@ -1,0 +1,15 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/dell/yahal_with_examples/YAHAL/lib/tinyUSB++/build/cmake_install.cmake",
+		"C:/Users/dell/yahal_with_examples/YAHAL/lib/tinyUSB++/build/class/cmake_install.cmake",
+		"C:/Users/dell/yahal_with_examples/YAHAL/lib/tinyUSB++/build/class/cdc/cmake_install.cmake",
+		"C:/Users/dell/yahal_with_examples/YAHAL/lib/tinyUSB++/build/class/msc/cmake_install.cmake",
+		"C:/Users/dell/yahal_with_examples/YAHAL/lib/tinyUSB++/build/class/hid/cmake_install.cmake",
+		"C:/Users/dell/yahal_with_examples/YAHAL/lib/tinyUSB++/build/drivers/cmake_install.cmake",
+		"C:/Users/dell/yahal_with_examples/YAHAL/lib/tinyUSB++/build/src/cmake_install.cmake",
+		"C:/Users/dell/yahal_with_examples/YAHAL/lib/tinyUSB++/build/src/usb_ms/cmake_install.cmake",
+		"C:/Users/dell/yahal_with_examples/YAHAL/lib/tinyUSB++/build/src/host/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

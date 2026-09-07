@@ -155,32 +155,32 @@ usb_endpoint* usb_hcd::create_endpoint(
     uint16_t packet_size, uint8_t interval) {
     (void)type; (void)interval;
     int slot = -1;
-    for (int i = 0; i < 15; ++i) {
-        if (!_int_eps[i].used) { slot = i; break; }
+    for (int i = 1; i <= 15; ++i) {
+        if (!_int_eps[i-1].used) { slot = i; break; }
     }
     if (slot < 0) return nullptr;
-    _int_eps[slot].used = true;
-    _int_eps[slot].daddr = daddr;
-    _int_eps[slot].ep_addr = ep_addr;
-    _int_eps[slot].packet_size = packet_size;
-    _int_eps[slot].hw_buffer = INT_EP_BUFFER_BASE + (slot * 64);
-    ADDR_ENDP__t* addr_endp = (&USB.ADDR_ENDP_1) + slot;
+    _int_eps[slot-1].used = true;
+    _int_eps[slot-1].daddr = daddr;
+    _int_eps[slot-1].ep_addr = ep_addr;
+    _int_eps[slot-1].packet_size = packet_size;
+    _int_eps[slot-1].hw_buffer = INT_EP_BUFFER_BASE + ((slot-1) * 64);
+    ADDR_ENDP__t* addr_endp = (&USB.ADDR_ENDP_1) + (slot-1);
     addr_endp->ADDRESS = daddr;
     addr_endp->ENDPOINT = ep_addr & 0x0f;
     addr_endp->INTEP_DIR = (ep_addr & 0x80) ? 0 : 1;
-    uint16_t offset = (uint16_t)(_int_eps[slot].hw_buffer - (uint8_t*)&USB_DPRAM);
-    EP_CONTROL_t* ep_ctrl = (&USB_DPRAM.EP2_IN_CONTROL) + (slot * 2);
+    printf("ADDR_ENDP: addr=%d ep=%d dir=%d\n", (int)addr_endp->ADDRESS, (int)addr_endp->ENDPOINT, (int)addr_endp->INTEP_DIR);
+    uint16_t offset = (uint16_t)(_int_eps[slot-1].hw_buffer - (uint8_t*)&USB_DPRAM);
+    EP_CONTROL_t* ep_ctrl = (&USB_DPRAM.EP2_IN_CONTROL) + ((slot-1) * 2);
     ep_ctrl->ENABLE = 1;
     ep_ctrl->ENDPOINT_TYPE = EP_CONTROL_ENDPOINT_TYPE__Interrupt;
     ep_ctrl->BUFFER_ADDRESS = offset;
     ep_ctrl->INTERRUPT_PER_BUFF = 1;
     USB.INT_EP_CTRL.INT_EP_ACTIVE |= (1 << slot);
     printf("INT_EP slot=%d active=%08lx\n", slot, (uint32_t)USB.INT_EP_CTRL.INT_EP_ACTIVE);
-    // Arm buffer for first reception
-    EP_BUFFER_CONTROL_t* bc = (&USB_DPRAM.EP1_IN_BUFFER_CONTROL) + slot;
+    printf("EP_CTRL=%08lx offset=%d\n", *((volatile uint32_t*)ep_ctrl), (int)offset);
+    EP_BUFFER_CONTROL_t* bc = (&USB_DPRAM.EP2_IN_BUFFER_CONTROL) + ((slot-1) * 2);
     bc->LENGTH_0    = packet_size;
     bc->PID_0       = 0;
-    bc->LAST_0      = 1;
     bc->AVAILABLE_0 = 1;
     return nullptr;
 }
@@ -286,6 +286,7 @@ extern "C" {
                     // completed. This single IN packet already *is* the
                     // status stage - no further OUT stage follows.
                     usb_hcd::inst()._status_in_only = false;
+                    USB_CLR.SIE_CTRL.RECEIVE_DATA <<= 1;
                     printf("STATUS IN (no-data xfer) COMPLETE\n");
                     if (usb_hcd::inst()._xfer_complete_cb) {
                         hcd_xfer_result_t result{ 0 };
@@ -365,15 +366,16 @@ extern "C" {
 
         // --- Interrupt endpoint data ---
         if (USB.INTS.BUFF_STATUS) {
+            printf("BUFF=%08lx\n", *((volatile uint32_t*)&USB.BUFF_STATUS));
             uint32_t buffs = USB.BUFF_STATUS;
             for (int slot = 0; slot < 15; ++slot) {
-                uint32_t bit = 1u << ((slot + 1) * 2);
+                uint32_t bit = 1u << (2 + (slot * 2));
                 if (buffs & bit) {
                     USB_CLR.BUFF_STATUS = bit;
                     auto& ep = usb_hcd::inst()._int_eps[slot];
                     if (ep.used && ep.data_handler) {
                         EP_BUFFER_CONTROL_t* bc =
-                            (&USB_DPRAM.EP1_IN_BUFFER_CONTROL) + slot;
+                            (&USB_DPRAM.EP2_IN_BUFFER_CONTROL) + (slot * 2);
                         uint16_t len = (uint16_t)bc->LENGTH_0;
                         ep.data_handler(ep.hw_buffer, len);
                         // Rearm buffer for next report
