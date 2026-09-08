@@ -122,7 +122,6 @@ public:
         _hcd.create_endpoint(out_ep.daddr, out_ep.ep_addr,
                               TUPP::ep_attributes_t::TRANS_INTERRUPT,
                               out_ep.max_packet, out_ep.interval);
-        _USB_::USB_CLR.SIE_CTRL.RECEIVE_DATA <<= 1;
         bool registered = _hcd.set_int_ep_handler(out_ep.daddr, out_ep.ep_addr,
                                                    report_handler);
         if (!registered) {
@@ -130,6 +129,7 @@ public:
             return false;
         }
 
+        _USB_::USB_SET.SIE_CTRL.SOF_EN <<= 1; // Enable SOF for interrupt endpoint polling
         TUPP_LOG(LOG_INFO, "usb_host_enum: enumeration complete, waiting for reports");
         return true;
     }
