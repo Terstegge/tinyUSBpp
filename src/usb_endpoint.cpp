@@ -49,14 +49,17 @@ usb_endpoint::usb_endpoint(
 }
 
 void usb_endpoint::reset() {
+    lock_endpoint();
     TUPP_LOG(LOG_DEBUG, "reset()");
     send_stall(false);
     send_NAK(false);
     _active = false;
     _next_pid = 1;
+    unlock_endpoint();
 }
 
 void usb_endpoint::start_transfer(uint8_t * buffer, uint16_t len) {
+    lock_endpoint();
     assert(!_active) ;
     // Mark this endpoint as active
     _active = true;
@@ -79,11 +82,14 @@ void usb_endpoint::start_transfer(uint8_t * buffer, uint16_t len) {
     }
     // Trigger the transfer in HW.
     trigger_transfer(_current_len);
+    unlock_endpoint();
 }
 
 void usb_endpoint::handle_buffer_in(uint16_t) {
+    lock_endpoint();
     if (!_active) {
         TUPP_LOG(LOG_WARNING, "handle_buffer_in: Endpoint not active!");
+        unlock_endpoint();
         return;
     }
     // Entering this method means that the hw controller
@@ -94,6 +100,7 @@ void usb_endpoint::handle_buffer_in(uint16_t) {
         // Call user handler which will report the
         // complete data which was sent to the host.
         _active = false;
+        unlock_endpoint();
         if (data_handler) {
             data_handler(_data_ptr, _data_len);
         }
@@ -111,11 +118,14 @@ void usb_endpoint::handle_buffer_in(uint16_t) {
     _current_ptr += _current_len;
     // Finally trigger the transfer
     trigger_transfer(_current_len);
+    unlock_endpoint();
 }
 
 void usb_endpoint::handle_buffer_out(uint16_t len) {
+    lock_endpoint();
     if (!_active) {
         TUPP_LOG(LOG_WARNING, "handle_buffer_out: Endpoint not active!");
+        unlock_endpoint();
         return;
     }
     // Entering this method means that the host has sent us a
@@ -131,6 +141,7 @@ void usb_endpoint::handle_buffer_out(uint16_t len) {
         // Let the user handler consume the complete
         // received data set.
         _active = false;
+        unlock_endpoint();
         if (data_handler) {
             data_handler(_data_ptr, _data_len - _bytes_left);
         }
@@ -142,4 +153,5 @@ void usb_endpoint::handle_buffer_out(uint16_t len) {
                    descriptor.wMaxPacketSize : _bytes_left;
     // Finally trigger the transfer
     trigger_transfer(_current_len);
+    unlock_endpoint();
 }

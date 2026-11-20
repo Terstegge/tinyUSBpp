@@ -20,11 +20,11 @@
 #include "usb_log.h"
 
 using namespace TUPP;
-using enum TUPP::bInterfaceClass_t;
-using enum TUPP::bInterfaceSubClass_t;
-using enum TUPP::bInterfaceProtocol_t;
-using enum TUPP::ep_attributes_t;
-using enum TUPP::direction_t;
+using enum bInterfaceClass_t;
+using enum bInterfaceSubClass_t;
+using enum bInterfaceProtocol_t;
+using enum ep_attributes_t;
+using enum direction_t;
 using enum usb_log::log_level;
 
 usb_cdc_acm_device::usb_cdc_acm_device(

@@ -76,7 +76,7 @@ uint8_t usb_configuration::add_interface(usb_interface * interface) {
             break;
         }
     }
-    assert(i != 5);
+    assert(i != TUPP_MAX_INTERF_PER_CONF);
     // Set the interface number in the interface
     interface->_descriptor.bInterfaceNumber = i;
     // Set our own descriptor accordingly
@@ -88,13 +88,13 @@ uint8_t usb_configuration::add_interface(usb_interface * interface) {
 void usb_configuration::add_interface_association(usb_interface_association * assoc) {
     TUPP_LOG(LOG_DEBUG, "add_interface_association()");
     int i = 0;
-    for (i = 0; i < 5; ++i) {
+    for (i = 0; i < TUPP_MAX_ASSOC_PER_CONF; ++i) {
         if (!_associations[i]) {
              _associations[i] = assoc;
             break;
         }
     }
-    assert(i != 5);
+    assert(i != TUPP_MAX_ASSOC_PER_CONF);
     set_total_length();
 }
 

@@ -19,6 +19,7 @@
 
 class usb_interface;
 
+#include "irq_safe_lock.h"
 #include "usb_endpoint.h"
 #include "RP2040.h"
 
@@ -40,6 +41,9 @@ public:
 
     void send_NAK(bool b) override;
 
+    void lock_endpoint()   override { _lock.lock();   }
+    void unlock_endpoint() override { _lock.unlock(); }
+
 private:
     usb_endpoint_rp2040(uint8_t  addr,
                         TUPP::ep_attributes_t  type,
@@ -48,6 +52,8 @@ private:
                         usb_interface * interface = nullptr);
 
     void _process_buffer();
+
+    irq_safe_lock         _lock;
 
     EP_CONTROL_t *        _endp_ctrl;
     EP_BUFFER_CONTROL_t * _buff_ctrl;

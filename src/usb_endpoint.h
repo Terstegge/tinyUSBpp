@@ -94,6 +94,10 @@ public:
     // Get the STALLed status
     virtual bool is_stalled() const = 0;
 
+    // Lock or Unlock this endpoint
+    virtual void lock_endpoint()   { }
+    virtual void unlock_endpoint() { }
+
 protected:
     // The endpoint CTOR is only accessible from the
     // derived implementations of this class

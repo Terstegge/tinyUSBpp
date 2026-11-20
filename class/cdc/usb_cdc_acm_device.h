@@ -33,7 +33,6 @@
 #include "usb_fd_union.h"
 #include "usb_fifo.h"
 #include <functional>
-#include <utility>
 
 class usb_cdc_acm_device {
 public:

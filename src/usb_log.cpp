@@ -38,6 +38,14 @@ void usb_log::print(const char *file, int line, log_level l, const char *fmt, ..
             strncat(buffer, p, 1);
         } else {
             switch (*++p) {
+                /* char */
+                case 'c': {
+                    char tmp[2];
+                    tmp[0] = va_arg(args, int);
+                    tmp[1] = 0;
+                    strcpy(buffer, tmp);
+                    break;
+                }
                 /* string */
                 case 's': {
                     strcpy(buffer, "\"");
