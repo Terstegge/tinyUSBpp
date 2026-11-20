@@ -5,6 +5,8 @@
 #include "usb_hid_structs.h"
 #include "usb_hid_defines.h"
 #include "usb_interface.h"
+#include "usb_structs.h"
+using enum TUPP::bDescriptorType_t;
 
 class usb_fd_hid : public usb_fd_base {
 public:
@@ -12,11 +14,11 @@ public:
     : usb_fd_base(i, (uint8_t *)&_descriptor, sizeof(HID::hid_descriptor_t))
     {
         _descriptor.bLength           = sizeof(HID::hid_descriptor_t);
-        _descriptor.bDescriptorType   = HID_DESC_TYPE_HID;
+        _descriptor.bDescriptorType   = DESC_HID;
         _descriptor.bcdHID            = 0x0111;
         _descriptor.bCountryCode      = HID_COUNTRY_NONE;
         _descriptor.bNumDescriptors   = 1;
-        _descriptor.bDescriptorType2  = HID_DESC_TYPE_REPORT;
+        _descriptor.bDescriptorType2  = DESC_HID_REPORT;
         _descriptor.wDescriptorLength = report_desc_len;
 
         // Add this functional descriptor to the parent interface

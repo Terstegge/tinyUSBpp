@@ -24,7 +24,6 @@
 #include "usb_device.h"
 #include "usb_configuration.h"
 #include "usb_interface.h"
-#include "usb_interface_association.h"
 #include "usb_bos.h"
 #include "usb_fd_base.h"
 #include "usb_strings.h"
@@ -185,7 +184,7 @@ void usb_device_controller::handle_set_address(setup_packet_t * pkt) {
 void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
     TUPP_LOG(LOG_DEBUG, "handle_get_descriptor()");
     assert(pkt->direction == DIR_IN);
-    // recipient can be DEVICE or INTERFACE (for HID Report Descriptor)
+    assert(pkt->recipient == REC_DEVICE);
     // Extract type and index
     uint8_t desc_index = pkt->wValue & 0xff;
     auto desc_type = (TUPP::bDescriptorType_t)(pkt->wValue >> 8);
@@ -275,19 +274,6 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
                      pkt->wLength);
             _ep0_in->send_stall(true);
             _ep0_out->send_stall(true);
-            break;
-        }
-        case (TUPP::bDescriptorType_t)0x22: {
-            TUPP_LOG(LOG_INFO, "Get HID report descriptor");
-            auto conf = _device.find_configuration(_active_configuration);
-            if (conf) {
-                auto iface = conf->interfaces[pkt->wIndex & 0xff];
-                if (iface && iface->setup_handler) {
-                    iface->setup_handler(pkt);
-                    return;
-                }
-            }
-            _ep0_in->send_stall(true);
             break;
         }
         default:

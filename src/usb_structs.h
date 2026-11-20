@@ -87,7 +87,8 @@ namespace TUPP {
         DESC_DEBUG                 = 10,
         DESC_INTERFACE_ASSOCIATION = 11,
         DESC_BOS                   = 15,
-        DESC_DEVICE_CAPABILITY     = 16
+        DESC_DEVICE_CAPABILITY     = 16,
+        HID_DEVICE_DESCRIPTOR_TYPES
     };
 
     enum class bDeviceClass_t : uint8_t {

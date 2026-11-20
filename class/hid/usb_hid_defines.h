@@ -25,11 +25,16 @@
     REQ_HID_SET_IDLE        = 0x0A, \
     REQ_HID_SET_PROTOCOL    = 0x0B
 
+#define HID_DEVICE_DESCRIPTOR_TYPES \
+    DESC_HID                = 0x21, \
+    DESC_HID_REPORT         = 0x22, \
+    DESC_HID_PHYSICAL       = 0x23
+
 ///////////////////////////////////////
 // HID class specific interface classes
 ///////////////////////////////////////
 #define HID_INTERFACE_CLASSES \
-    IF_CLASS_HID    = 0x03
+    IF_CLASS_HID            = 0x03
 
 //////////////////////////////////////////
 // HID class specific interface subclasses
@@ -42,13 +47,9 @@
 // HID class specific interface protocols
 //////////////////////////////////////////
 #define HID_INTERFACE_PROTOCOLS \
-    IF_PROTOCOL_HID_NONE        = 0x00, \
-    IF_PROTOCOL_HID_KEYBOARD    = 0x01, \
-    IF_PROTOCOL_HID_MOUSE       = 0x02
-
-// HID Descriptor Types
-#define HID_DESC_TYPE_HID       0x21
-#define HID_DESC_TYPE_REPORT    0x22
+    IF_PROTOCOL_HID_NONE    = 0x00, \
+    IF_PROTOCOL_HID_KEYBOARD= 0x01, \
+    IF_PROTOCOL_HID_MOUSE   = 0x02
 
 // HID Protocol values
 #define HID_PROTOCOL_BOOT       0x00

@@ -15,6 +15,8 @@
 #define TUPP_USB_HID_STRUCTS_H
 
 #include <cstdint>
+#include "usb_structs.h"
+using namespace TUPP;
 
 namespace HID {
 
@@ -35,13 +37,13 @@ namespace HID {
 
     // HID Descriptor
     struct hid_descriptor_t {
-        uint8_t  bLength;
-        uint8_t  bDescriptorType;
-        uint16_t bcdHID;
-        uint8_t  bCountryCode;
-        uint8_t  bNumDescriptors;
-        uint8_t  bDescriptorType2;
-        uint16_t wDescriptorLength;
+        uint8_t             bLength;
+        bDescriptorType_t   bDescriptorType;
+        uint16_t            bcdHID;
+        uint8_t             bCountryCode;
+        uint8_t             bNumDescriptors;
+        bDescriptorType_t   bDescriptorType2;
+        uint16_t            wDescriptorLength;
     } __attribute__((packed));
 
 } // namespace HID

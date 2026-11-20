@@ -17,12 +17,12 @@
 #include <cstring>
 
 using namespace TUPP;
-using enum TUPP::bInterfaceClass_t;
-using enum TUPP::bInterfaceSubClass_t;
-using enum TUPP::bInterfaceProtocol_t;
-using enum TUPP::ep_attributes_t;
-using enum TUPP::direction_t;
-using enum TUPP::bRequest_t;
+using enum bInterfaceClass_t;
+using enum bInterfaceSubClass_t;
+using enum bInterfaceProtocol_t;
+using enum ep_attributes_t;
+using enum direction_t;
+using enum bRequest_t;
 using enum usb_log::log_level;
 
 usb_hid_device::usb_hid_device(
@@ -60,8 +60,8 @@ usb_hid_device::usb_hid_device(
     _interface.setup_handler = [&](TUPP::setup_packet_t * pkt) {
         // Handle GET_DESCRIPTOR for HID Report Descriptor
         if (pkt->bRequest == REQ_GET_DESCRIPTOR) {
-            uint8_t desc_type = (pkt->wValue >> 8) & 0xFF;
-            if (desc_type == HID_DESC_TYPE_REPORT) {
+            auto desc_type = (bDescriptorType_t)((pkt->wValue >> 8) & 0xFF);
+            if (desc_type == DESC_HID_REPORT) {
                 TUPP_LOG(LOG_INFO, "HID: GET_REPORT_DESCRIPTOR");
                 uint16_t len = _report_desc_len;
                 if (pkt->wLength < len) len = pkt->wLength;
