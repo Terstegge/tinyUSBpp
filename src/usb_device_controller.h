@@ -53,6 +53,7 @@ public:
     std::function<void(uint8_t *, uint16_t)> handler;
 
 private:
+    bool forward_request(setup_packet_t * pkt) const;
 
     void handle_set_address      (TUPP::setup_packet_t * pkt);
     void handle_get_descriptor   (TUPP::setup_packet_t * pkt);

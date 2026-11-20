@@ -129,46 +129,52 @@ usb_device_controller::usb_device_controller(usb_dcd_interface & driver, usb_dev
                     TUPP_LOG(LOG_WARNING, "Unknown standard setup request type %d", pkt->type);
             }
         } else {
-            // We received a non-standard request.
-            // Find the proper destination and forward it.
-            switch(pkt->recipient) {
-                case REC_DEVICE: {
-                    if (_device.setup_handler) {
-                        _device.setup_handler(pkt);
-                    }
-                    break;
-                }
-                case REC_INTERFACE: {
-                    auto config = _device.find_configuration(_active_configuration);
-                    if (config) {
-                        auto interface = config->interfaces[pkt->wIndex];
-                        if (interface) {
-                            if (interface->setup_handler) {
-                                interface->setup_handler(pkt);
-                            }
-                        }
-                    }
-                    break;
-                }
-                case REC_ENDPOINT: {
-                    auto ep = _driver.addr_to_ep(pkt->wIndex);
-                    if (ep) {
-                        if (ep->setup_handler) {
-                            ep->setup_handler(pkt);
-                        }
-                    }
-                    break;
-                }
-                default: {
-                    TUPP_LOG(LOG_WARNING, "Could not find recipient %d", pkt->recipient);
-                }
+            // Non-standard request (TYPE_CLASS / TYPE_VENDOR)
+            if (!forward_request(pkt)) {
+                _ep0_in->send_stall(true);
+                _ep0_out->send_stall(true);
             }
         }
     };
-
     // Start DCD by enabling interrupts
     _driver.irq_enable(true);
 }
+
+bool usb_device_controller::forward_request(setup_packet_t * pkt) const {
+    switch (pkt->recipient) {
+        case REC_DEVICE: {
+            if (_device.setup_handler) {
+                _device.setup_handler(pkt);
+                return true;
+            }
+            break;
+        }
+        case REC_INTERFACE: {
+            auto config = _device.find_configuration(_active_configuration);
+            if (config) {
+                auto interface = config->interfaces[pkt->wIndex & 0xff];
+                if (interface && interface->setup_handler) {
+                    interface->setup_handler(pkt);
+                    return true;
+                }
+            }
+            break;
+        }
+        case REC_ENDPOINT: {
+            auto ep = _driver.addr_to_ep(pkt->wIndex & 0xff);
+            if (ep && ep->setup_handler) {
+                ep->setup_handler(pkt);
+                return true;
+            }
+            break;
+        }
+        default:
+            TUPP_LOG(LOG_WARNING, "Could not find recipient %d", pkt->recipient);
+            break;
+    }
+    return false;
+}
+
 
 void usb_device_controller::handle_set_address(setup_packet_t * pkt) {
     TUPP_LOG(LOG_DEBUG, "handle_set_address()");
@@ -184,7 +190,14 @@ void usb_device_controller::handle_set_address(setup_packet_t * pkt) {
 void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
     TUPP_LOG(LOG_DEBUG, "handle_get_descriptor()");
     assert(pkt->direction == DIR_IN);
-    assert(pkt->recipient == REC_DEVICE);
+    // Check for other receivers than DEVICE
+    if (pkt->recipient != REC_DEVICE) {
+        if (!forward_request(pkt)) {
+            _ep0_in->send_stall(true);
+            _ep0_out->send_stall(true);
+        }
+        return;
+    }
     // Extract type and index
     uint8_t desc_index = pkt->wValue & 0xff;
     auto desc_type = (TUPP::bDescriptorType_t)(pkt->wValue >> 8);
@@ -286,9 +299,15 @@ void usb_device_controller::handle_get_descriptor(setup_packet_t * pkt) {
 
 void usb_device_controller::handle_set_descriptor(setup_packet_t * pkt) {
     TUPP_LOG(LOG_INFO, "Set descriptor");
-    (void)pkt;
     assert(pkt->direction == DIR_OUT);
-    assert(pkt->recipient == REC_DEVICE);
+    // Check for other receivers than DEVICE
+    if (pkt->recipient != REC_DEVICE) {
+        if (!forward_request(pkt)) {
+            _ep0_in->send_stall(true);
+            _ep0_out->send_stall(true);
+        }
+        return;
+    }
     // Notimplemented so far
     _ep0_in->send_stall(true);
     _ep0_out->send_stall(true);
